@@ -1,0 +1,5 @@
+{
+  "name": "Commission Calculator",
+  "description": "Calculate distributor and sales rep commissions with Excel export.",
+  "requestFramePermissions": []
+}
