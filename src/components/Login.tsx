@@ -18,6 +18,8 @@ export default function Login() {
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use' || err.code === 'auth/account-exists-with-different-credential') {
         setError('An account already exists with this email. Please sign in using your email and password instead, or enable "Link accounts that use the same email" in your Firebase Authentication settings.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain is not authorized for OAuth operations. You need to add this domain (e.g., your-app.vercel.app) to the "Authorized domains" list in your Firebase Console under Authentication > Settings.');
       } else {
         setError(err.message || 'Failed to sign in with Google');
       }
