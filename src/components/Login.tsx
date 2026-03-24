@@ -16,7 +16,11 @@ export default function Login() {
       setLoading(true);
       await signInWithGoogle();
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
+      if (err.code === 'auth/email-already-in-use' || err.code === 'auth/account-exists-with-different-credential') {
+        setError('An account already exists with this email. Please sign in using your email and password instead, or enable "Link accounts that use the same email" in your Firebase Authentication settings.');
+      } else {
+        setError(err.message || 'Failed to sign in with Google');
+      }
       setLoading(false);
     }
   };
@@ -36,7 +40,13 @@ export default function Login() {
         await signInWithEmail(email, password);
       }
     } catch (err: any) {
-      setError(err.message || `Failed to ${isSignUp ? 'sign up' : 'sign in'}`);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists. Please switch to "Sign in" instead.');
+      } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password.');
+      } else {
+        setError(err.message || `Failed to ${isSignUp ? 'sign up' : 'sign in'}`);
+      }
       setLoading(false);
     }
   };
