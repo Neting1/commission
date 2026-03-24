@@ -103,7 +103,7 @@ function MainApp() {
             <div className="bg-indigo-600 p-2 rounded-lg text-white">
               <Calculator size={24} />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 hidden sm:block">Commission Calculator</h1>
+            <h1 className="text-xl font-bold text-slate-900 hidden sm:block">Twinhill Commission</h1>
             <span className="ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize border border-slate-200">
               {userProfile.role.replace('_', ' ')}
             </span>
