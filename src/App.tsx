@@ -7,7 +7,8 @@ import { Calculator, PieChart, Users, Settings, LogOut } from 'lucide-react';
 import { AuthProvider, useAuth } from './AuthContext';
 import Login from './components/Login';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, handleFirestoreError, OperationType } from './firebase';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function MainApp() {
   const { user, signOut } = useAuth();
@@ -47,7 +48,7 @@ function MainApp() {
           }
         }
       } catch (error) {
-        console.error("Error loading data from Firestore:", error);
+        handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
       } finally {
         setDataLoaded(true);
       }
@@ -74,7 +75,7 @@ function MainApp() {
         localStorage.setItem(`commissionData_${user.uid}`, JSON.stringify(distributors));
         localStorage.setItem(`commissionCurrency_${user.uid}`, JSON.stringify(currency));
       } catch (error) {
-        console.error("Error saving data to Firestore:", error);
+        handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
       }
     };
     
@@ -226,8 +227,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

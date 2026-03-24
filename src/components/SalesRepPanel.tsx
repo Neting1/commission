@@ -99,7 +99,7 @@ export default function SalesRepPanel({ distributors, setDistributors, currency 
             <option value="">Select a Distributor...</option>
             {distributors.map(d => (
               <option key={d.id} value={d.id}>
-                {d.displayId ? `[${d.displayId}] ` : ''}{d.name || 'Unnamed Distributor'}
+                {d.name || 'Unnamed Distributor'}
               </option>
             ))}
           </select>

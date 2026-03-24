@@ -85,17 +85,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         <div className="space-y-4">
           {distributors.map((d) => (
             <div key={d.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">ID</label>
-                <input
-                  type="text"
-                  value={d.displayId || ''}
-                  onChange={(e) => updateDistributor(d.id, 'displayId', e.target.value)}
-                  placeholder="Dist. ID"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                />
-              </div>
-              <div className="md:col-span-2">
+              <div className="md:col-span-4">
                 <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Name</label>
                 <input
                   type="text"

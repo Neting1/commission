@@ -186,10 +186,6 @@ export default function Login() {
                 : "Don't have an account? Sign up"}
             </button>
           </div>
-          
-          <div className="mt-4 text-center text-xs text-slate-500">
-            Note: Email/Password sign-in must be enabled in your Firebase Console.
-          </div>
         </div>
       </div>
     </div>
