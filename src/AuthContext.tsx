@@ -38,6 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -45,7 +46,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentUser) {
         try {
           const docRef = doc(db, 'users', currentUser.uid);
-          const docSnap = await getDoc(docRef);
+          
+          // Add a timeout to getDoc to prevent indefinite hanging
+          const timeoutPromise = new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error("Firestore request timed out. Please check your connection or Firebase configuration.")), 10000)
+          );
+          
+          const docSnap = await Promise.race([
+            getDoc(docRef),
+            timeoutPromise
+          ]);
           
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -64,22 +74,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               uid: currentUser.uid,
               email: currentUser.email || '',
               role: isFirstUser ? 'admin' : 'sales_rep',
-              name: currentUser.displayName || undefined,
             };
-            await setDoc(docRef, newProfile, { merge: true });
+            if (currentUser.displayName) {
+              newProfile.name = currentUser.displayName;
+            }
+            
+            const setDocTimeout = new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error("Firestore write timed out. Please check your connection or Firebase configuration.")), 10000)
+            );
+            
+            await Promise.race([
+              setDoc(docRef, newProfile, { merge: true }),
+              setDocTimeout
+            ]);
+            
             setUserProfile(newProfile);
           }
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
+        } catch (err) {
+          console.error("Error fetching user profile:", err);
+          setError(err instanceof Error ? err : new Error(String(err)));
+        } finally {
+          setLoading(false);
         }
       } else {
         setUserProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  if (error) {
+    throw error;
+  }
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();

@@ -18,7 +18,16 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const querySnapshot = await getDocs(collection(db, 'users'));
+      
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error("Firestore request timed out.")), 10000)
+      );
+      
+      const querySnapshot = await Promise.race([
+        getDocs(collection(db, 'users')),
+        timeoutPromise
+      ]);
+      
       const fetchedUsers: UserProfile[] = [];
       querySnapshot.forEach((doc) => {
         fetchedUsers.push(doc.data() as UserProfile);

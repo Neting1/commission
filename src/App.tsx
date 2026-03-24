@@ -18,6 +18,7 @@ function MainApp() {
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<'distributors' | 'reps' | 'summary' | 'users'>('summary');
+  const [error, setError] = useState<Error | null>(null);
 
   // Load data from Firestore on mount
   useEffect(() => {
@@ -25,7 +26,10 @@ function MainApp() {
     
     const docRef = doc(db, 'global', 'data');
     
+    let timeoutId: NodeJS.Timeout;
+    
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      clearTimeout(timeoutId);
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.distributors) {
@@ -44,13 +48,30 @@ function MainApp() {
         }
       }
       setDataLoaded(true);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'global/data');
+    }, (err) => {
+      clearTimeout(timeoutId);
+      try {
+        handleFirestoreError(err, OperationType.GET, 'global/data');
+      } catch (e) {
+        setError(e instanceof Error ? e : new Error(String(e)));
+      }
       setDataLoaded(true);
     });
     
-    return () => unsubscribe();
+    timeoutId = setTimeout(() => {
+      setError(new Error("Firestore request timed out. Please check your connection or Firebase configuration."));
+      setDataLoaded(true);
+    }, 10000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
   }, [user, userProfile]);
+
+  if (error) {
+    throw error;
+  }
 
   // Save data to Firestore when it changes (only for admins/managers)
   useEffect(() => {
