@@ -1,81 +1,117 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Distributor, Currency, formatCurrency, calculateDistributorCommission, calculateTotalSalesRepCommission, calculateNetEarnings } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Download, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Download, TrendingUp, Users, DollarSign, AlertCircle, X } from 'lucide-react';
 import { exportToExcel } from '../ExcelExport';
 
 interface Props {
   distributors: Distributor[];
   currency: Currency;
+  isSalesRep?: boolean;
 }
 
-export default function SummaryDashboard({ distributors, currency }: Props) {
+export default function SummaryDashboard({ distributors, currency, isSalesRep = false }: Props) {
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const totalDistributorCommission = distributors.reduce((sum, d) => sum + calculateDistributorCommission(d), 0);
   const totalSalesRepCommission = distributors.reduce((sum, d) => sum + calculateTotalSalesRepCommission(d), 0);
   const netEarnings = totalDistributorCommission - totalSalesRepCommission;
 
   const handleExport = async () => {
+    setExportError(null);
     try {
       await exportToExcel(distributors, currency);
     } catch (error) {
       console.error('Failed to export to Excel:', error);
-      alert('Failed to generate Excel file. Please try again.');
+      setExportError('Failed to generate Excel file. Please try again.');
     }
   };
 
-  const chartData = [
-    { name: 'Net Earnings', value: Math.max(0, netEarnings), color: '#10b981' }, // emerald-500
-    { name: 'Sales Rep Commissions', value: Math.max(0, totalSalesRepCommission), color: '#6366f1' }, // indigo-500
-  ];
+  const chartData = isSalesRep 
+    ? distributors.filter(d => calculateTotalSalesRepCommission(d) > 0).map(d => ({
+        name: d.name || 'Unnamed',
+        value: calculateTotalSalesRepCommission(d),
+        color: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}` // Simple random color for now, or we can use a fixed palette
+      }))
+    : [
+        { name: 'Net Earnings', value: Math.max(0, netEarnings), color: '#10b981' }, // emerald-500
+        { name: 'Sales Rep Commissions', value: Math.max(0, totalSalesRepCommission), color: '#6366f1' }, // indigo-500
+      ];
+
+  // For sales reps, let's use a predefined color palette for the pie chart
+  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#0ea5e9', '#3b82f6'];
+  if (isSalesRep) {
+    chartData.forEach((entry, index) => {
+      entry.color = COLORS[index % COLORS.length];
+    });
+  }
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
-          <div className="p-4 bg-blue-50 text-blue-600 rounded-full">
-            <TrendingUp size={24} />
+      {exportError && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-start gap-3">
+          <AlertCircle size={20} className="shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium">{exportError}</p>
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Dist. Commission</p>
-            <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalDistributorCommission, currency)}</p>
-          </div>
+          <button onClick={() => setExportError(null)} className="text-red-500 hover:text-red-700">
+            <X size={18} />
+          </button>
         </div>
+      )}
+
+      <div className={`grid grid-cols-1 ${isSalesRep ? 'md:grid-cols-1' : 'md:grid-cols-3'} gap-6`}>
+        {!isSalesRep && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
+            <div className="p-4 bg-blue-50 text-blue-600 rounded-full">
+              <TrendingUp size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Dist. Commission</p>
+              <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalDistributorCommission, currency)}</p>
+            </div>
+          </div>
+        )}
         
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
           <div className="p-4 bg-indigo-50 text-indigo-600 rounded-full">
             <Users size={24} />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Rep Commission</p>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{isSalesRep ? 'Total Earned' : 'Total Rep Commission'}</p>
             <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalSalesRepCommission, currency)}</p>
           </div>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
-          <div className={`p-4 rounded-full ${netEarnings >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-            <DollarSign size={24} />
+        {!isSalesRep && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
+            <div className={`p-4 rounded-full ${netEarnings >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+              <DollarSign size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Net Earnings</p>
+              <p className={`text-2xl font-bold ${netEarnings >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {formatCurrency(netEarnings, currency)}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Net Earnings</p>
-            <p className={`text-2xl font-bold ${netEarnings >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {formatCurrency(netEarnings, currency)}
-            </p>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-slate-800">Distributor Breakdown</h2>
-            <button
-              onClick={handleExport}
-              disabled={distributors.length === 0}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download size={16} />
-              Export to Excel
-            </button>
+            {!isSalesRep && (
+              <button
+                onClick={handleExport}
+                disabled={distributors.length === 0}
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download size={16} />
+                Export to Excel
+              </button>
+            )}
           </div>
           
           <div className="overflow-x-auto">
@@ -83,15 +119,15 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                   <th className="pb-3 font-medium">Distributor</th>
-                  <th className="pb-3 font-medium text-right">Earned Comm.</th>
-                  <th className="pb-3 font-medium text-right">Rep Comm.</th>
-                  <th className="pb-3 font-medium text-right">Net</th>
+                  {!isSalesRep && <th className="pb-3 font-medium text-right">Earned Comm.</th>}
+                  <th className="pb-3 font-medium text-right">{isSalesRep ? 'Your Comm.' : 'Rep Comm.'}</th>
+                  {!isSalesRep && <th className="pb-3 font-medium text-right">Net</th>}
                 </tr>
               </thead>
               <tbody className="text-sm">
                 {distributors.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-slate-500 italic">No data available</td>
+                    <td colSpan={isSalesRep ? 2 : 4} className="py-8 text-center text-slate-500 italic">No data available</td>
                   </tr>
                 ) : (
                   distributors.map(d => {
@@ -102,9 +138,9 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                     return (
                       <tr key={d.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                         <td className="py-3 font-medium text-slate-800">{d.name || 'Unnamed'}</td>
-                        <td className="py-3 text-right text-slate-600">{formatCurrency(distComm, currency)}</td>
+                        {!isSalesRep && <td className="py-3 text-right text-slate-600">{formatCurrency(distComm, currency)}</td>}
                         <td className="py-3 text-right text-indigo-600">{formatCurrency(repComm, currency)}</td>
-                        <td className="py-3 text-right font-medium text-emerald-600">{formatCurrency(net, currency)}</td>
+                        {!isSalesRep && <td className="py-3 text-right font-medium text-emerald-600">{formatCurrency(net, currency)}</td>}
                       </tr>
                     );
                   })
@@ -115,8 +151,8 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
         </div>
         
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-800 mb-6">Distribution</h2>
-          {totalDistributorCommission > 0 ? (
+          <h2 className="text-xl font-semibold text-slate-800 mb-6">{isSalesRep ? 'Earnings by Distributor' : 'Distribution'}</h2>
+          {(isSalesRep ? totalSalesRepCommission : totalDistributorCommission) > 0 ? (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

@@ -8,10 +8,13 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { UserProfile, UserRole } from './types';
 
 interface AuthContextType {
   user: User | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
@@ -21,6 +24,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  userProfile: null,
   loading: true,
   signInWithGoogle: async () => {},
   signInWithEmail: async () => {},
@@ -32,11 +36,45 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        try {
+          const docRef = doc(db, 'users', currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserProfile({
+              uid: data.uid,
+              email: data.email,
+              role: data.role || 'sales_rep',
+              name: data.name || currentUser.displayName || undefined,
+            });
+          } else {
+            // Create a new user profile, default to admin if it's the first user, else sales_rep
+            // For simplicity, let's make the first user an admin, or just default to admin for now
+            // In a real app, you'd have a more robust way to assign roles
+            const isFirstUser = currentUser.email === 'infotech.peadato@gmail.com';
+            const newProfile: UserProfile = {
+              uid: currentUser.uid,
+              email: currentUser.email || '',
+              role: isFirstUser ? 'admin' : 'sales_rep',
+              name: currentUser.displayName || undefined,
+            };
+            await setDoc(docRef, newProfile, { merge: true });
+            setUserProfile(newProfile);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      } else {
+        setUserProfile(null);
+      }
       setLoading(false);
     });
 
@@ -81,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   );

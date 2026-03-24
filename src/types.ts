@@ -1,8 +1,10 @@
 export type CommissionType = 'percentage' | 'fixed';
+export type UserRole = 'admin' | 'manager' | 'sales_rep';
 
 export interface SalesRep {
   id: string;
   name: string;
+  email?: string; // Link to user account
   commissionType: CommissionType;
   commissionValue: number;
 }
@@ -20,6 +22,13 @@ export interface Distributor {
 export interface Currency {
   code: string;
   symbol: string;
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  role: UserRole;
+  name?: string;
 }
 
 export const CURRENCIES: Currency[] = [

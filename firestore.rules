@@ -11,6 +11,12 @@ service cloud.firestore {
     // Fields:
     //   - uid: string (required) - The user's unique ID
     //   - email: string (required) - The user's email address
+    //   - role: string (optional) - The user's role ('admin', 'manager', 'sales_rep')
+    //   - name: string (optional) - The user's name
+    //
+    // Collection: global
+    // Document ID: data
+    // Fields:
     //   - distributors: string (optional) - JSON stringified array of distributors
     //   - currency: string (optional) - JSON stringified currency object
     //
@@ -44,12 +50,28 @@ service cloud.firestore {
       return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "infotech.peadato@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isManager() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'manager';
+    }
+
     // Domain Validators
     function isValidUser(data) {
       return hasRequiredFields(['uid', 'email']) &&
              data.uid is string && data.uid.size() > 0 && data.uid.size() < 128 &&
              isValidEmail(data.email) &&
-             (!('distributors' in data) || data.distributors is string) &&
+             (!('role' in data) || data.role in ['admin', 'manager', 'sales_rep']) &&
+             (!('name' in data) || data.name is string);
+    }
+
+    function isValidGlobalData(data) {
+      return (!('distributors' in data) || data.distributors is string) &&
              (!('currency' in data) || data.currency is string);
     }
 
@@ -58,10 +80,15 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin() || isManager();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && uidNotModified();
-      allow delete: if isOwner(userId);
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && uidNotModified() && (request.resource.data.role == resource.data.role || isAdmin())) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /global/data {
+      allow read: if isAuthenticated();
+      allow write: if (isAdmin() || isManager()) && isValidGlobalData(request.resource.data);
     }
   }
 }
