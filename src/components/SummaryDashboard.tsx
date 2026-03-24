@@ -3,6 +3,7 @@ import { Distributor, Currency, formatCurrency, calculateDistributorCommission, 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Download, TrendingUp, Users, DollarSign, AlertCircle, X } from 'lucide-react';
 import { exportToExcel } from '../ExcelExport';
+import { useTheme } from '../ThemeContext';
 
 interface Props {
   distributors: Distributor[];
@@ -12,6 +13,7 @@ interface Props {
 
 export default function SummaryDashboard({ distributors, currency, isSalesRep = false }: Props) {
   const [exportError, setExportError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   const totalDistributorCommission = distributors.reduce((sum, d) => sum + calculateDistributorCommission(d), 0);
   const totalSalesRepCommission = distributors.reduce((sum, d) => sum + calculateTotalSalesRepCommission(d), 0);
@@ -49,12 +51,12 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
   return (
     <div className="space-y-6">
       {exportError && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-start gap-3">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg flex items-start gap-3">
           <AlertCircle size={20} className="shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-medium">{exportError}</p>
           </div>
-          <button onClick={() => setExportError(null)} className="text-red-500 hover:text-red-700">
+          <button onClick={() => setExportError(null)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
             <X size={18} />
           </button>
         </div>
@@ -62,35 +64,35 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
 
       <div className={`grid grid-cols-1 ${isSalesRep ? 'md:grid-cols-1' : 'md:grid-cols-3'} gap-6`}>
         {!isSalesRep && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
-            <div className="p-4 bg-blue-50 text-blue-600 rounded-full">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex items-center gap-4">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
               <TrendingUp size={24} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Dist. Commission</p>
-              <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalDistributorCommission, currency)}</p>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Dist. Commission</p>
+              <p className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(totalDistributorCommission, currency)}</p>
             </div>
           </div>
         )}
         
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
-          <div className="p-4 bg-indigo-50 text-indigo-600 rounded-full">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex items-center gap-4">
+          <div className="p-4 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full">
             <Users size={24} />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{isSalesRep ? 'Total Earned' : 'Total Rep Commission'}</p>
-            <p className="text-2xl font-bold text-slate-800">{formatCurrency(totalSalesRepCommission, currency)}</p>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isSalesRep ? 'Total Earned' : 'Total Rep Commission'}</p>
+            <p className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(totalSalesRepCommission, currency)}</p>
           </div>
         </div>
         
         {!isSalesRep && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
-            <div className={`p-4 rounded-full ${netEarnings >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex items-center gap-4">
+            <div className={`p-4 rounded-full ${netEarnings >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
               <DollarSign size={24} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Net Earnings</p>
-              <p className={`text-2xl font-bold ${netEarnings >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Net Earnings</p>
+              <p className={`text-2xl font-bold ${netEarnings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                 {formatCurrency(netEarnings, currency)}
               </p>
             </div>
@@ -99,14 +101,14 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-slate-800">Distributor Breakdown</h2>
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-white">Distributor Breakdown</h2>
             {!isSalesRep && (
               <button
                 onClick={handleExport}
                 disabled={distributors.length === 0}
-                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 bg-emerald-600 dark:bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download size={16} />
                 Export to Excel
@@ -117,7 +119,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <th className="pb-3 font-medium">Distributor</th>
                   {!isSalesRep && <th className="pb-3 font-medium text-right">Earned Comm.</th>}
                   <th className="pb-3 font-medium text-right">{isSalesRep ? 'Your Comm.' : 'Rep Comm.'}</th>
@@ -127,7 +129,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
               <tbody className="text-sm">
                 {distributors.length === 0 ? (
                   <tr>
-                    <td colSpan={isSalesRep ? 2 : 4} className="py-8 text-center text-slate-500 italic">No data available</td>
+                    <td colSpan={isSalesRep ? 2 : 4} className="py-8 text-center text-slate-500 dark:text-slate-400 italic">No data available</td>
                   </tr>
                 ) : (
                   distributors.map(d => {
@@ -136,11 +138,11 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
                     const net = distComm - repComm;
                     
                     return (
-                      <tr key={d.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="py-3 font-medium text-slate-800">{d.name || 'Unnamed'}</td>
-                        {!isSalesRep && <td className="py-3 text-right text-slate-600">{formatCurrency(distComm, currency)}</td>}
-                        <td className="py-3 text-right text-indigo-600">{formatCurrency(repComm, currency)}</td>
-                        {!isSalesRep && <td className="py-3 text-right font-medium text-emerald-600">{formatCurrency(net, currency)}</td>}
+                      <tr key={d.id} className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                        <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{d.name || 'Unnamed'}</td>
+                        {!isSalesRep && <td className="py-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(distComm, currency)}</td>}
+                        <td className="py-3 text-right text-indigo-600 dark:text-indigo-400">{formatCurrency(repComm, currency)}</td>
+                        {!isSalesRep && <td className="py-3 text-right font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(net, currency)}</td>}
                       </tr>
                     );
                   })
@@ -150,8 +152,8 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
           </div>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-800 mb-6">{isSalesRep ? 'Earnings by Distributor' : 'Distribution'}</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">{isSalesRep ? 'Earnings by Distributor' : 'Distribution'}</h2>
           {(isSalesRep ? totalSalesRepCommission : totalDistributorCommission) > 0 ? (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -171,14 +173,25 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
                   </Pie>
                   <Tooltip 
                     formatter={(value: number) => formatCurrency(value, currency)}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ 
+                      borderRadius: '8px', 
+                      border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+                      color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+                    }}
+                    itemStyle={{ color: theme === 'dark' ? '#cbd5e1' : '#475569' }}
                   />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36} 
+                    wrapperStyle={{ color: theme === 'dark' ? '#cbd5e1' : '#475569' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-slate-400 italic text-sm border border-dashed border-slate-200 rounded-lg">
+            <div className="h-64 flex items-center justify-center text-slate-400 dark:text-slate-500 italic text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
               Not enough data for chart
             </div>
           )}

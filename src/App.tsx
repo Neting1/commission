@@ -4,15 +4,17 @@ import DistributorPanel from './components/DistributorPanel';
 import SalesRepPanel from './components/SalesRepPanel';
 import SummaryDashboard from './components/SummaryDashboard';
 import UserManagement from './components/UserManagement';
-import { Calculator, PieChart, Users, Settings, LogOut, ShieldAlert, UserCog } from 'lucide-react';
+import { Calculator, PieChart, Users, Settings, LogOut, ShieldAlert, UserCog, Moon, Sun } from 'lucide-react';
 import { AuthProvider, useAuth } from './AuthContext';
 import Login from './components/Login';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useTheme } from './ThemeContext';
 
 function MainApp() {
   const { user, userProfile, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
@@ -100,8 +102,8 @@ function MainApp() {
 
   if (!dataLoaded || !userProfile) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
       </div>
     );
   }
@@ -117,22 +119,22 @@ function MainApp() {
       })).filter(d => d.salesReps.length > 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-200">
+      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-lg text-white">
+            <div className="bg-indigo-600 dark:bg-indigo-500 p-2 rounded-lg text-white">
               <Calculator size={24} />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 hidden sm:block">Twinhill Commission</h1>
-            <span className="ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize border border-slate-200">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white hidden sm:block">Twinhill Commission</h1>
+            <span className="ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 capitalize border border-slate-200 dark:border-slate-600">
               {userProfile.role.replace('_', ' ')}
             </span>
           </div>
           
           <div className="flex items-center gap-4">
             {isAdminOrManager && (
-              <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
                 <Settings size={16} />
                 <select
                   value={currency.code}
@@ -140,7 +142,7 @@ function MainApp() {
                     const curr = CURRENCIES.find(c => c.code === e.target.value);
                     if (curr) setCurrency(curr);
                   }}
-                  className="bg-slate-100 border-none rounded-md py-1 px-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="bg-slate-100 dark:bg-slate-700 border-none rounded-md py-1 px-2 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none dark:text-white"
                 >
                   {CURRENCIES.map(c => (
                     <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
@@ -149,15 +151,22 @@ function MainApp() {
               </div>
             )}
             
-            <div className="h-6 w-px bg-slate-200 mx-1"></div>
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
             
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-slate-600 hidden md:block">
+              <button
+                onClick={toggleTheme}
+                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-300 hidden md:block">
                 {userProfile.name || userProfile.email}
               </span>
               <button 
                 onClick={() => signOut()}
-                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                 title="Sign Out"
               >
                 <LogOut size={18} />
@@ -169,13 +178,13 @@ function MainApp() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isAdminOrManager ? (
-          <div className="flex space-x-1 bg-slate-200/50 p-1 rounded-xl mb-8 w-full max-w-lg mx-auto">
+          <div className="flex space-x-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl mb-8 w-full max-w-lg mx-auto">
             <button
               onClick={() => setActiveTab('distributors')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 activeTab === 'distributors' 
-                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
               }`}
             >
               <Calculator size={18} />
@@ -185,8 +194,8 @@ function MainApp() {
               onClick={() => setActiveTab('reps')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 activeTab === 'reps' 
-                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
               }`}
             >
               <Users size={18} />
@@ -196,8 +205,8 @@ function MainApp() {
               onClick={() => setActiveTab('summary')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 activeTab === 'summary' 
-                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
               }`}
             >
               <PieChart size={18} />
@@ -208,8 +217,8 @@ function MainApp() {
                 onClick={() => setActiveTab('users')}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
                   activeTab === 'users' 
-                    ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
                 }`}
               >
                 <UserCog size={18} />
@@ -219,8 +228,8 @@ function MainApp() {
           </div>
         ) : (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-800">My Commissions</h2>
-            <p className="text-slate-500 mt-1">View your earned commissions across all distributors.</p>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">My Commissions</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">View your earned commissions across all distributors.</p>
           </div>
         )}
 
@@ -263,8 +272,8 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center transition-colors">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
       </div>
     );
   }
