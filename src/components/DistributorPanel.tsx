@@ -58,12 +58,12 @@ export default function DistributorPanel({ distributors, setDistributors, curren
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
       <div className="flex justify-between items-center mb-4 md:mb-6">
         <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white">Distributors</h2>
         <button
           onClick={addDistributor}
-          className="flex items-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors text-xs md:text-sm font-medium"
+          className="flex items-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors text-xs md:text-sm font-medium"
         >
           <Plus size={14} md:size={16} />
           Add
@@ -71,20 +71,20 @@ export default function DistributorPanel({ distributors, setDistributors, curren
       </div>
 
       {warning && (
-        <div className="mb-4 md:mb-6 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-400 rounded-lg flex items-center gap-2 text-xs md:text-sm animate-in fade-in slide-in-from-top-2">
+        <div className="mb-4 md:mb-6 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-400 rounded-xl flex items-center gap-2 text-xs md:text-sm animate-in fade-in slide-in-from-top-2">
           <AlertCircle size={14} md:size={16} />
           {warning}
         </div>
       )}
 
       {distributors.length === 0 ? (
-        <div className="text-center py-8 md:py-12 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-xs md:text-sm">
+        <div className="text-center py-8 md:py-12 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-xs md:text-sm">
           No distributors added yet. Click "Add" to start.
         </div>
       ) : (
         <div className="space-y-4">
           {distributors.map((d) => (
-            <div key={d.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div key={d.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700">
               <div className="md:col-span-4">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Name</label>
                 <input
@@ -92,7 +92,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   value={d.name}
                   onChange={(e) => updateDistributor(d.id, 'name', e.target.value)}
                   placeholder="Distributor Name"
-                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
               <div className="md:col-span-2">
@@ -103,7 +103,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   value={d.totalSales || ''}
                   onChange={(e) => updateDistributor(d.id, 'totalSales', parseFloat(e.target.value) || 0)}
                   placeholder="0.00"
-                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
               <div className="md:col-span-2">
@@ -117,7 +117,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                       setWarning('Distributor commission percentage cannot exceed 100%. Value capped.');
                     }
                   }}
-                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white"
+                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white"
                 >
                   <option value="percentage">Percentage (%)</option>
                   <option value="fixed">Fixed Amount</option>
@@ -132,7 +132,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   value={d.commissionValue || ''}
                   onChange={(e) => updateDistributor(d.id, 'commissionValue', parseFloat(e.target.value) || 0)}
                   placeholder="0"
-                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
               <div className="md:col-span-1 flex flex-col justify-end h-full pb-1 md:pb-2">
@@ -143,7 +143,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
               <div className="md:col-span-1 flex justify-end">
                 <button
                   onClick={() => removeDistributor(d.id)}
-                  className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                  className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   title="Remove Distributor"
                 >
                   <Trash2 size={16} md:size={18} />

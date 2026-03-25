@@ -64,7 +64,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
 
       <div className={`grid grid-cols-1 ${isSalesRep ? 'md:grid-cols-1' : 'md:grid-cols-3'} gap-4 md:gap-6`}>
         {!isSalesRep && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
             <div className="p-3 md:p-4 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
               <TrendingUp size={20} md:size={24} />
             </div>
@@ -75,7 +75,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
           </div>
         )}
         
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
           <div className="p-3 md:p-4 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full">
             <Users size={20} md:size={24} />
           </div>
@@ -86,7 +86,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
         </div>
         
         {!isSalesRep && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
             <div className={`p-3 md:p-4 rounded-full ${netEarnings >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
               <DollarSign size={20} md:size={24} />
             </div>
@@ -101,14 +101,14 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
           <div className="flex justify-between items-center mb-4 md:mb-6">
             <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white">Distributor Breakdown</h2>
             {!isSalesRep && (
               <button
                 onClick={handleExport}
                 disabled={distributors.length === 0}
-                className="flex items-center gap-2 bg-emerald-600 dark:bg-emerald-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 bg-emerald-600 dark:bg-emerald-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download size={14} md:size={16} />
                 Export
@@ -152,7 +152,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
           </div>
         </div>
         
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
           <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white mb-4 md:mb-6">{isSalesRep ? 'Earnings by Distributor' : 'Distribution'}</h2>
           {(isSalesRep ? totalSalesRepCommission : totalDistributorCommission) > 0 ? (
             <div className="h-48 md:h-64 w-full">
@@ -174,7 +174,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
                   <Tooltip 
                     formatter={(value: number) => formatCurrency(value, currency)}
                     contentStyle={{ 
-                      borderRadius: '8px', 
+                      borderRadius: '12px', 
                       border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                       backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
@@ -191,7 +191,7 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-48 md:h-64 flex items-center justify-center text-slate-400 dark:text-slate-500 italic text-xs md:text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+            <div className="h-48 md:h-64 flex items-center justify-center text-slate-400 dark:text-slate-500 italic text-xs md:text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
               Not enough data for chart
             </div>
           )}

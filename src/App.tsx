@@ -4,7 +4,8 @@ import DistributorPanel from './components/DistributorPanel';
 import SalesRepPanel from './components/SalesRepPanel';
 import SummaryDashboard from './components/SummaryDashboard';
 import UserManagement from './components/UserManagement';
-import { Calculator, PieChart, Users, Settings, LogOut, ShieldAlert, UserCog, Moon, Sun } from 'lucide-react';
+import ThemeToggle from './components/ThemeToggle';
+import { Calculator, PieChart, Users, Settings, LogOut, ShieldAlert, UserCog } from 'lucide-react';
 import { AuthProvider, useAuth } from './AuthContext';
 import Login from './components/Login';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -14,7 +15,7 @@ import { useTheme } from './ThemeContext';
 
 function MainApp() {
   const { user, userProfile, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
@@ -123,7 +124,7 @@ function MainApp() {
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 dark:bg-indigo-500 p-2 rounded-lg text-white">
+            <div className="bg-indigo-600 dark:bg-indigo-500 p-2 rounded-2xl text-white">
               <Calculator size={24} />
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white hidden sm:block">Twinhill Commission</h1>
@@ -142,7 +143,7 @@ function MainApp() {
                     const curr = CURRENCIES.find(c => c.code === e.target.value);
                     if (curr) setCurrency(curr);
                   }}
-                  className="bg-slate-100 dark:bg-slate-700 border-none rounded-md py-1 px-2 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none dark:text-white"
+                  className="bg-slate-100 dark:bg-slate-700 border-none rounded-xl py-1 px-2 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none dark:text-white"
                 >
                   {CURRENCIES.map(c => (
                     <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
@@ -154,22 +155,16 @@ function MainApp() {
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
             
             <div className="flex items-center gap-3">
-              <button
-                onClick={toggleTheme}
-                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
-                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
+              <ThemeToggle />
               <span className="text-sm font-medium text-slate-600 dark:text-slate-300 hidden md:block">
                 {userProfile.name || userProfile.email}
               </span>
               <button 
                 onClick={() => signOut()}
-                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                 title="Sign Out"
               >
-                <LogOut size={18} />
+                <LogOut size={20} />
               </button>
             </div>
           </div>
