@@ -25,7 +25,8 @@ export async function exportToExcel(distributors: Distributor[], currency: Curre
     const diffResult = calculateDifference(d);
     
     // Formula for Percentage: (Difference / Actual) * 100
-    const pctFormula = `IF(B${rowNum}>0, (D${rowNum}/B${rowNum})*100, 0)`;
+    // Explicitly check for 0 to prevent #DIV/0! errors in Excel
+    const pctFormula = `IF(B${rowNum}=0, 0, (D${rowNum}/B${rowNum})*100)`;
     const pctResult = calculatePercentage(d);
     
     distSheet.addRow({
@@ -52,12 +53,12 @@ export async function exportToExcel(distributors: Distributor[], currency: Curre
   const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
   const totalDiscount = distributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
   const totalDifference = totalActual - totalDiscount;
-  const totalPct = totalActual > 0 ? (totalDifference / totalActual) * 100 : 0;
+  const totalPct = totalActual === 0 ? 0 : (totalDifference / totalActual) * 100;
   
   distSheet.getCell(`B${lastRow}`).value = { formula: `SUM(B2:B${lastRow-1})`, result: totalActual };
   distSheet.getCell(`C${lastRow}`).value = { formula: `SUM(C2:C${lastRow-1})`, result: totalDiscount };
   distSheet.getCell(`D${lastRow}`).value = { formula: `SUM(D2:D${lastRow-1})`, result: totalDifference };
-  distSheet.getCell(`E${lastRow}`).value = { formula: `IF(B${lastRow}>0, (D${lastRow}/B${lastRow})*100, 0)`, result: totalPct };
+  distSheet.getCell(`E${lastRow}`).value = { formula: `IF(B${lastRow}=0, 0, (D${lastRow}/B${lastRow})*100)`, result: totalPct };
   
   distSheet.getCell(`B${lastRow}`).font = { bold: true };
   distSheet.getCell(`C${lastRow}`).font = { bold: true };

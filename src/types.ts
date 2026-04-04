@@ -40,8 +40,13 @@ export function calculateDifference(distributor: Distributor): number {
 }
 
 export function calculatePercentage(distributor: Distributor): number {
-  const actual = distributor.actualAmount || 0;
-  if (actual === 0) return 0;
+  const actual = Number(distributor.actualAmount) || 0;
+  
+  // Explicitly handle cases where Actual Amount is zero to prevent division by zero
+  if (actual === 0) {
+    return 0;
+  }
+  
   const diff = calculateDifference(distributor);
   return (diff / actual) * 100;
 }
