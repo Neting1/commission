@@ -162,53 +162,46 @@ function MainApp() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isAdminOrManager ? (
-          <div className="flex space-x-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl mb-8 w-full max-w-lg mx-auto">
+        <div className="flex space-x-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl mb-8 w-full max-w-lg mx-auto">
+          <button
+            onClick={() => setActiveTab('distributors')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
+              activeTab === 'distributors' 
+                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+            }`}
+          >
+            <Calculator size={18} />
+            Calculations
+          </button>
+          <button
+            onClick={() => setActiveTab('summary')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
+              activeTab === 'summary' 
+                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+            }`}
+          >
+            <PieChart size={18} />
+            Summary
+          </button>
+          {userProfile.role === 'admin' && (
             <button
-              onClick={() => setActiveTab('distributors')}
+              onClick={() => setActiveTab('users')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                activeTab === 'distributors' 
+                activeTab === 'users' 
                   ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
               }`}
             >
-              <Calculator size={18} />
-              Calculations
+              <UserCog size={18} />
+              Users
             </button>
-            <button
-              onClick={() => setActiveTab('summary')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                activeTab === 'summary' 
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-              }`}
-            >
-              <PieChart size={18} />
-              Summary
-            </button>
-            {userProfile.role === 'admin' && (
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                  activeTab === 'users' 
-                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                }`}
-              >
-                <UserCog size={18} />
-                Users
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Calculations</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">View your calculations.</p>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="transition-all duration-300 ease-in-out">
-          {isAdminOrManager && activeTab === 'distributors' && (
+          {activeTab === 'distributors' && (
             <DistributorPanel 
               distributors={distributors} 
               setDistributors={setDistributors} 
@@ -216,7 +209,7 @@ function MainApp() {
             />
           )}
           
-          {(activeTab === 'summary' || !isAdminOrManager) && (
+          {activeTab === 'summary' && (
             <SummaryDashboard 
               distributors={distributors} 
               currency={currency} 
