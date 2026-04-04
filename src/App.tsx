@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Distributor, Currency, CURRENCIES } from './types';
 import DistributorPanel from './components/DistributorPanel';
-import SalesRepPanel from './components/SalesRepPanel';
 import SummaryDashboard from './components/SummaryDashboard';
 import UserManagement from './components/UserManagement';
 import ThemeToggle from './components/ThemeToggle';
@@ -20,7 +19,7 @@ function MainApp() {
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'distributors' | 'reps' | 'summary' | 'users'>('summary');
+  const [activeTab, setActiveTab] = useState<'distributors' | 'summary' | 'users'>('summary');
   const [error, setError] = useState<Error | null>(null);
 
   // Load data from Firestore on mount
@@ -76,10 +75,9 @@ function MainApp() {
     throw error;
   }
 
-  // Save data to Firestore when it changes (only for admins/managers)
+  // Save data to Firestore when it changes
   useEffect(() => {
     if (!user || !userProfile || !dataLoaded) return;
-    if (userProfile.role === 'sales_rep') return; // Sales reps can't save global data
     
     const saveData = async () => {
       try {
@@ -110,14 +108,6 @@ function MainApp() {
   }
 
   const isAdminOrManager = userProfile.role === 'admin' || userProfile.role === 'manager';
-
-  // Filter distributors for sales rep
-  const visibleDistributors = isAdminOrManager 
-    ? distributors 
-    : distributors.map(d => ({
-        ...d,
-        salesReps: d.salesReps.filter(r => r.email === userProfile.email || r.name.toLowerCase() === userProfile.name?.toLowerCase())
-      })).filter(d => d.salesReps.length > 0);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-200">
@@ -183,18 +173,7 @@ function MainApp() {
               }`}
             >
               <Calculator size={18} />
-              Distributors
-            </button>
-            <button
-              onClick={() => setActiveTab('reps')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                activeTab === 'reps' 
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-              }`}
-            >
-              <Users size={18} />
-              Sales Reps
+              Calculations
             </button>
             <button
               onClick={() => setActiveTab('summary')}
@@ -223,8 +202,8 @@ function MainApp() {
           </div>
         ) : (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">My Commissions</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">View your earned commissions across all distributors.</p>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Calculations</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">View your calculations.</p>
           </div>
         )}
 
@@ -237,19 +216,10 @@ function MainApp() {
             />
           )}
           
-          {isAdminOrManager && activeTab === 'reps' && (
-            <SalesRepPanel 
-              distributors={distributors} 
-              setDistributors={setDistributors} 
-              currency={currency} 
-            />
-          )}
-          
           {(activeTab === 'summary' || !isAdminOrManager) && (
             <SummaryDashboard 
-              distributors={visibleDistributors} 
+              distributors={distributors} 
               currency={currency} 
-              isSalesRep={!isAdminOrManager}
             />
           )}
 

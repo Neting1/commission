@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
-import { Distributor, Currency, formatCurrency, calculateDistributorCommission, calculateTotalSalesRepCommission, calculateNetEarnings } from '../types';
+import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Download, TrendingUp, Users, DollarSign, AlertCircle, X } from 'lucide-react';
+import { Download, TrendingUp, DollarSign, AlertCircle, X, Percent } from 'lucide-react';
 import { exportToExcel } from '../ExcelExport';
 import { useTheme } from '../ThemeContext';
 
 interface Props {
   distributors: Distributor[];
   currency: Currency;
-  isSalesRep?: boolean;
 }
 
-export default function SummaryDashboard({ distributors, currency, isSalesRep = false }: Props) {
+export default function SummaryDashboard({ distributors, currency }: Props) {
   const [exportError, setExportError] = useState<string | null>(null);
   const { theme } = useTheme();
 
-  const totalDistributorCommission = distributors.reduce((sum, d) => sum + calculateDistributorCommission(d), 0);
-  const totalSalesRepCommission = distributors.reduce((sum, d) => sum + calculateTotalSalesRepCommission(d), 0);
-  const netEarnings = totalDistributorCommission - totalSalesRepCommission;
+  const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
+  const totalDiscount = distributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
+  const totalDifference = totalActual - totalDiscount;
 
   const handleExport = async () => {
     setExportError(null);
@@ -29,24 +28,10 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
     }
   };
 
-  const chartData = isSalesRep 
-    ? distributors.filter(d => calculateTotalSalesRepCommission(d) > 0).map(d => ({
-        name: d.name || 'Unnamed',
-        value: calculateTotalSalesRepCommission(d),
-        color: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}` // Simple random color for now, or we can use a fixed palette
-      }))
-    : [
-        { name: 'Net Earnings', value: Math.max(0, netEarnings), color: '#10b981' }, // emerald-500
-        { name: 'Sales Rep Commissions', value: Math.max(0, totalSalesRepCommission), color: '#6366f1' }, // indigo-500
-      ];
-
-  // For sales reps, let's use a predefined color palette for the pie chart
-  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#0ea5e9', '#3b82f6'];
-  if (isSalesRep) {
-    chartData.forEach((entry, index) => {
-      entry.color = COLORS[index % COLORS.length];
-    });
-  }
+  const chartData = [
+    { name: 'Total Difference', value: Math.max(0, totalDifference), color: '#10b981' }, // emerald-500
+    { name: 'Total Discount', value: Math.max(0, totalDiscount), color: '#6366f1' }, // indigo-500
+  ];
 
   return (
     <div className="space-y-6">
@@ -62,87 +47,82 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
         </div>
       )}
 
-      <div className={`grid grid-cols-1 ${isSalesRep ? 'md:grid-cols-1' : 'md:grid-cols-3'} gap-4 md:gap-6`}>
-        {!isSalesRep && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
-            <div className="p-3 md:p-4 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-              <TrendingUp size={20} md:size={24} />
-            </div>
-            <div>
-              <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Dist. Commission</p>
-              <p className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(totalDistributorCommission, currency)}</p>
-            </div>
-          </div>
-        )}
-        
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
-          <div className="p-3 md:p-4 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full">
-            <Users size={20} md:size={24} />
+          <div className="p-3 md:p-4 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
+            <TrendingUp size={20} md:size={24} />
           </div>
           <div>
-            <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isSalesRep ? 'Total Earned' : 'Total Rep Commission'}</p>
-            <p className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(totalSalesRepCommission, currency)}</p>
+            <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Actual Amount</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(totalActual, currency)}</p>
           </div>
         </div>
         
-        {!isSalesRep && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
-            <div className={`p-3 md:p-4 rounded-full ${netEarnings >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
-              <DollarSign size={20} md:size={24} />
-            </div>
-            <div>
-              <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Net Earnings</p>
-              <p className={`text-xl md:text-2xl font-bold ${netEarnings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                {formatCurrency(netEarnings, currency)}
-              </p>
-            </div>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
+          <div className="p-3 md:p-4 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full">
+            <Percent size={20} md:size={24} />
           </div>
-        )}
+          <div>
+            <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Discount Amount</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(totalDiscount, currency)}</p>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 flex items-center gap-4">
+          <div className={`p-3 md:p-4 rounded-full ${totalDifference >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
+            <DollarSign size={20} md:size={24} />
+          </div>
+          <div>
+            <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Difference</p>
+            <p className={`text-xl md:text-2xl font-bold ${totalDifference >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+              {formatCurrency(totalDifference, currency)}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
           <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white">Distributor Breakdown</h2>
-            {!isSalesRep && (
-              <button
-                onClick={handleExport}
-                disabled={distributors.length === 0}
-                className="flex items-center gap-2 bg-emerald-600 dark:bg-emerald-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download size={14} md:size={16} />
-                Export
-              </button>
-            )}
+            <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white">Calculations Breakdown</h2>
+            <button
+              onClick={handleExport}
+              disabled={distributors.length === 0}
+              className="flex items-center gap-2 bg-emerald-600 dark:bg-emerald-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download size={14} md:size={16} />
+              Export
+            </button>
           </div>
           
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700 text-[10px] md:text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <th className="p-2 md:pb-3 font-medium">Distributor</th>
-                  {!isSalesRep && <th className="p-2 md:pb-3 font-medium text-right">Earned Comm.</th>}
-                  <th className="p-2 md:pb-3 font-medium text-right">{isSalesRep ? 'Your Comm.' : 'Rep Comm.'}</th>
-                  {!isSalesRep && <th className="p-2 md:pb-3 font-medium text-right">Net</th>}
+                  <th className="p-2 md:pb-3 font-medium">Name</th>
+                  <th className="p-2 md:pb-3 font-medium text-right">Actual Amount</th>
+                  <th className="p-2 md:pb-3 font-medium text-right">Discount Amount</th>
+                  <th className="p-2 md:pb-3 font-medium text-right">Difference</th>
+                  <th className="p-2 md:pb-3 font-medium text-right">% Diff</th>
                 </tr>
               </thead>
               <tbody className="text-xs md:text-sm">
                 {distributors.length === 0 ? (
                   <tr>
-                    <td colSpan={isSalesRep ? 2 : 4} className="py-8 text-center text-slate-500 dark:text-slate-400 italic">No data available</td>
+                    <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400 italic">No data available</td>
                   </tr>
                 ) : (
                   distributors.map(d => {
-                    const distComm = calculateDistributorCommission(d);
-                    const repComm = calculateTotalSalesRepCommission(d);
-                    const net = distComm - repComm;
+                    const diff = calculateDifference(d);
+                    const pct = calculatePercentage(d);
                     
                     return (
                       <tr key={d.id} className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                         <td className="p-2 md:py-3 font-medium text-slate-800 dark:text-slate-200">{d.name || 'Unnamed'}</td>
-                        {!isSalesRep && <td className="p-2 md:py-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(distComm, currency)}</td>}
-                        <td className="p-2 md:py-3 text-right text-indigo-600 dark:text-indigo-400">{formatCurrency(repComm, currency)}</td>
-                        {!isSalesRep && <td className="p-2 md:py-3 text-right font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(net, currency)}</td>}
+                        <td className="p-2 md:py-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(d.actualAmount || 0, currency)}</td>
+                        <td className="p-2 md:py-3 text-right text-indigo-600 dark:text-indigo-400">{formatCurrency(d.discountAmount || 0, currency)}</td>
+                        <td className="p-2 md:py-3 text-right font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(diff, currency)}</td>
+                        <td className="p-2 md:py-3 text-right font-medium text-slate-600 dark:text-slate-300">{pct.toFixed(2)}%</td>
                       </tr>
                     );
                   })
@@ -153,8 +133,8 @@ export default function SummaryDashboard({ distributors, currency, isSalesRep = 
         </div>
         
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white mb-4 md:mb-6">{isSalesRep ? 'Earnings by Distributor' : 'Distribution'}</h2>
-          {(isSalesRep ? totalSalesRepCommission : totalDistributorCommission) > 0 ? (
+          <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white mb-4 md:mb-6">Distribution</h2>
+          {totalActual > 0 ? (
             <div className="h-48 md:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

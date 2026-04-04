@@ -1,22 +1,11 @@
-export type CommissionType = 'percentage' | 'fixed';
-export type UserRole = 'admin' | 'manager' | 'sales_rep';
-
-export interface SalesRep {
-  id: string;
-  name: string;
-  email?: string; // Link to user account
-  commissionType: CommissionType;
-  commissionValue: number;
-}
+export type UserRole = 'admin' | 'manager' | 'user';
 
 export interface Distributor {
   id: string;
   displayId?: string;
   name: string;
-  totalSales: number;
-  commissionType: CommissionType;
-  commissionValue: number;
-  salesReps: SalesRep[];
+  actualAmount: number;
+  discountAmount: number;
 }
 
 export interface Currency {
@@ -46,28 +35,14 @@ export function formatCurrency(value: number, currency: Currency): string {
   }).format(value);
 }
 
-export function calculateDistributorCommission(distributor: Distributor): number {
-  if (distributor.commissionType === 'percentage') {
-    return distributor.totalSales * (distributor.commissionValue / 100);
-  }
-  return distributor.commissionValue;
+export function calculateDifference(distributor: Distributor): number {
+  return (distributor.actualAmount || 0) - (distributor.discountAmount || 0);
 }
 
-export function calculateSalesRepCommission(rep: SalesRep, distributorCommission: number): number {
-  if (rep.commissionType === 'percentage') {
-    return distributorCommission * (rep.commissionValue / 100);
-  }
-  return rep.commissionValue;
+export function calculatePercentage(distributor: Distributor): number {
+  const actual = distributor.actualAmount || 0;
+  if (actual === 0) return 0;
+  const diff = calculateDifference(distributor);
+  return (diff / actual) * 100;
 }
 
-export function calculateTotalSalesRepCommission(distributor: Distributor): number {
-  const distCommission = calculateDistributorCommission(distributor);
-  return distributor.salesReps.reduce(
-    (total, rep) => total + calculateSalesRepCommission(rep, distCommission),
-    0
-  );
-}
-
-export function calculateNetEarnings(distributor: Distributor): number {
-  return calculateDistributorCommission(distributor) - calculateTotalSalesRepCommission(distributor);
-}

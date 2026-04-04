@@ -153,7 +153,7 @@ export default function UserManagement() {
                   >
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
-                    <option value="sales_rep">Sales Rep</option>
+                    <option value="user">User</option>
                   </select>
                 </td>
                 <td className="p-4 text-right">

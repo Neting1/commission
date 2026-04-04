@@ -11,15 +11,21 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    // Start the sign-in process immediately to preserve the user gesture
+    // and prevent the browser from blocking the popup.
+    const signInPromise = signInWithGoogle();
+    
     try {
       setError('');
       setLoading(true);
-      await signInWithGoogle();
+      await signInPromise;
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use' || err.code === 'auth/account-exists-with-different-credential') {
         setError('An account already exists with this email. Please sign in using your email and password instead, or enable "Link accounts that use the same email" in your Firebase Authentication settings.');
       } else if (err.code === 'auth/unauthorized-domain') {
         setError('This domain is not authorized for OAuth operations. You need to add this domain (e.g., your-app.vercel.app) to the "Authorized domains" list in your Firebase Console under Authentication > Settings.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('The sign-in popup was blocked by your browser. Please allow popups for this site and try again.');
       } else {
         setError(err.message || 'Failed to sign in with Google');
       }

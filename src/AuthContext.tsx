@@ -62,18 +62,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUserProfile({
               uid: data.uid,
               email: data.email,
-              role: data.role || 'sales_rep',
+              role: data.role || 'user',
               name: data.name || currentUser.displayName || undefined,
             });
           } else {
-            // Create a new user profile, default to admin if it's the first user, else sales_rep
+            // Create a new user profile, default to admin if it's the first user, else user
             // For simplicity, let's make the first user an admin, or just default to admin for now
             // In a real app, you'd have a more robust way to assign roles
             const isFirstUser = currentUser.email === 'infotech.peadato@gmail.com';
             const newProfile: UserProfile = {
               uid: currentUser.uid,
               email: currentUser.email || '',
-              role: isFirstUser ? 'admin' : 'sales_rep',
+              role: isFirstUser ? 'admin' : 'user',
             };
             if (currentUser.displayName) {
               newProfile.name = currentUser.displayName;
@@ -109,14 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     throw error;
   }
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
+    return signInWithPopup(auth, provider).catch((error) => {
       console.error('Error signing in with Google', error);
       throw error;
-    }
+    });
   };
 
   const signInWithEmail = async (email: string, password: string) => {

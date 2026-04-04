@@ -92,5 +92,9 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if (isAdmin() || isManager()) && isValidGlobalData(request.resource.data);
     }
+
+    match /mail/{docId} {
+      allow create: if isAuthenticated();
+    }
   }
 }
