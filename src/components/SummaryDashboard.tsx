@@ -168,7 +168,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 11 }} width={80} />
                   <Tooltip
-                    formatter={(value: number) => `${value.toFixed(2)}%`}
+                    formatter={(value: any) => `${Number(value || 0).toFixed(2)}%`}
                     contentStyle={{ backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
                   />
                   <Bar dataKey="percentage" barSize={16}>
@@ -204,7 +204,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => formatCurrency(value, currency)}
+                    formatter={(value: any) => formatCurrency(Number(value || 0), currency)}
                     contentStyle={{ backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
                   />
                   <Legend verticalAlign="bottom" iconType="square" wrapperStyle={{ fontSize: '11px', color: theme === 'dark' ? '#cbd5e1' : '#475569' }} />
@@ -250,9 +250,10 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                 />
                 <Tooltip
                   contentStyle={{ backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
-                  formatter={(value: number, name: string) => {
-                    if (name === '% Diff') return [`${value.toFixed(2)}%`, name];
-                    return [formatCurrency(value, currency), name];
+                  formatter={(value: any, name: string) => {
+                    const numValue = Number(value || 0);
+                    if (name === '% Diff') return [`${numValue.toFixed(2)}%`, name];
+                    return [formatCurrency(numValue, currency), name];
                   }}
                 />
                 <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} iconType="square" />
