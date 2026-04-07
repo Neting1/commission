@@ -87,13 +87,14 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
     const map = new Map<string, Distributor>();
     filteredTransactions.forEach(d => {
       const name = (d.name || 'Unnamed').trim();
-      if (map.has(name)) {
-        const existing = map.get(name)!;
+      const key = name.toLowerCase();
+      if (map.has(key)) {
+        const existing = map.get(key)!;
         existing.actualAmount += (d.actualAmount || 0);
         existing.discountAmount += (d.discountAmount || 0);
       } else {
-        map.set(name, {
-          id: name,
+        map.set(key, {
+          id: key,
           name: name,
           actualAmount: d.actualAmount || 0,
           discountAmount: d.discountAmount || 0,
