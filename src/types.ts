@@ -6,6 +6,7 @@ export interface Distributor {
   name: string;
   actualAmount: number;
   discountAmount: number;
+  commissionRate?: number;
   date?: string; // ISO date string YYYY-MM-DD
 }
 
@@ -38,6 +39,13 @@ export function formatCurrency(value: number, currency: Currency): string {
 
 export function calculateDifference(distributor: Distributor): number {
   return (distributor.actualAmount || 0) - (distributor.discountAmount || 0);
+}
+
+export function calculateCommission(distributor: Distributor): number {
+  const actual = distributor.actualAmount || 0;
+  const rate = (distributor.commissionRate || 0) / 100;
+  const discount = distributor.discountAmount || 0;
+  return (actual * rate) - discount;
 }
 
 export function calculatePercentage(distributor: Distributor): number {

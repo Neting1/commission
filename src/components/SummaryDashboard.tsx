@@ -200,10 +200,34 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
 
   return (
     <div className="space-y-6 font-sans animate-in fade-in duration-500">
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-2">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Analyze your calculation metrics and trends.</p>
+        </div>
+        
+        {/* Global Date Filters */}
+        <div className="flex items-center gap-2 bg-white dark:bg-slate-800/90 p-1.5 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+          <div className="flex items-center px-2">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Filter:</span>
+          </div>
+          <input
+            type="date"
+            max={today}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            title="Start Date"
+          />
+          <span className="text-slate-400 text-xs font-medium">to</span>
+          <input
+            type="date"
+            max={today}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            title="End Date"
+          />
         </div>
       </div>
 
@@ -307,35 +331,14 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
           title="Calculations Breakdown" 
           className="w-full"
           action={
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  max={today}
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  title="Start Date"
-                />
-                <span className="text-slate-400 text-xs">to</span>
-                <input
-                  type="date"
-                  max={today}
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  title="End Date"
-                />
-              </div>
-              <button
-                onClick={handleExport}
-                disabled={distributors.length === 0}
-                className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 px-4 py-2 rounded-xl transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download size={16} />
-                Export
-              </button>
-            </div>
+            <button
+              onClick={handleExport}
+              disabled={distributors.length === 0}
+              className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 px-4 py-2 rounded-xl transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download size={16} />
+              Export
+            </button>
           }
         >
           {/* Mobile Sort Dropdown */}

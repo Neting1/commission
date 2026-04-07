@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle, Undo2, Redo2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
+import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage, calculateCommission } from '../types';
 
 interface Props {
   distributors: Distributor[];
@@ -59,6 +59,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         name: '',
         actualAmount: 0,
         discountAmount: 0,
+        commissionRate: 0,
         date: new Date().toISOString().split('T')[0],
       },
     ]);
@@ -133,8 +134,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
             ))}
           </datalist>
           {distributors.map((d) => (
-            <div key={d.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-              <div className="md:col-span-2">
+            <div key={d.id} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-3 md:gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="xl:col-span-1 lg:col-span-2 md:col-span-2 sm:col-span-1">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Date</label>
                 <input
                   type="date"
@@ -144,7 +145,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white"
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="xl:col-span-2 lg:col-span-2 md:col-span-2 sm:col-span-1">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Name</label>
                 <input
                   type="text"
@@ -155,7 +156,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="xl:col-span-2 lg:col-span-2 md:col-span-2 sm:col-span-1">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Actual ({currency.symbol})</label>
                 <input
                   type="number"
@@ -166,7 +167,19 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="xl:col-span-1 lg:col-span-2 md:col-span-2 sm:col-span-1">
+                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Rate (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={d.commissionRate || ''}
+                  onChange={(e) => updateDistributor(d.id, 'commissionRate', parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                />
+              </div>
+              <div className="xl:col-span-2 lg:col-span-2 md:col-span-2 sm:col-span-1">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Discount ({currency.symbol})</label>
                 <input
                   type="number"
@@ -177,19 +190,25 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
-              <div className="md:col-span-1 flex flex-col justify-end h-full pb-1 md:pb-2">
+              <div className="xl:col-span-1 lg:col-span-2 md:col-span-2 sm:col-span-1 flex flex-col justify-end h-full pb-1 md:pb-2">
+                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Comm Amt</label>
+                <div className="text-xs md:text-sm font-semibold text-blue-600 dark:text-blue-400 truncate">
+                  {formatCurrency(calculateCommission(d), currency)}
+                </div>
+              </div>
+              <div className="xl:col-span-1 lg:col-span-2 md:col-span-1 sm:col-span-1 flex flex-col justify-end h-full pb-1 md:pb-2">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Diff</label>
                 <div className="text-xs md:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
                   {formatCurrency(calculateDifference(d), currency)}
                 </div>
               </div>
-              <div className="md:col-span-2 flex flex-col justify-end h-full pb-1 md:pb-2">
+              <div className="xl:col-span-1 lg:col-span-2 md:col-span-1 sm:col-span-1 flex flex-col justify-end h-full pb-1 md:pb-2">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">% Diff</label>
                 <div className="text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate">
                   {calculatePercentage(d).toFixed(2)}%
                 </div>
               </div>
-              <div className="md:col-span-1 flex justify-end">
+              <div className="xl:col-span-1 lg:col-span-6 md:col-span-4 sm:col-span-2 flex justify-end">
                 <button
                   onClick={() => removeDistributor(d.id)}
                   className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
