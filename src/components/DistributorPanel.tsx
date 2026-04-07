@@ -59,7 +59,6 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         name: '',
         actualAmount: 0,
         discountAmount: 0,
-        commissionRate: 0,
         date: new Date().toISOString().split('T')[0],
       },
     ]);
@@ -145,7 +144,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white"
                 />
               </div>
-              <div className="xl:col-span-2 lg:col-span-2 md:col-span-2 sm:col-span-1">
+              <div className="xl:col-span-3 lg:col-span-2 md:col-span-2 sm:col-span-1">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Name</label>
                 <input
                   type="text"
@@ -164,18 +163,6 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   value={d.actualAmount || ''}
                   onChange={(e) => updateDistributor(d.id, 'actualAmount', parseFloat(e.target.value) || 0)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
-                />
-              </div>
-              <div className="xl:col-span-1 lg:col-span-2 md:col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Rate (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={d.commissionRate || ''}
-                  onChange={(e) => updateDistributor(d.id, 'commissionRate', parseFloat(e.target.value) || 0)}
-                  placeholder="0"
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
@@ -202,7 +189,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   {calculatePercentage(d).toFixed(2)}%
                 </div>
               </div>
-              <div className="xl:col-span-1 lg:col-span-6 md:col-span-4 sm:col-span-2 flex flex-col justify-end h-full">
+              <div className="xl:col-span-1 lg:col-span-6 md:col-span-2 sm:col-span-2 flex flex-col justify-end h-full">
                 <div className="hidden xl:block h-[18px] mb-1.5"></div>
                 <button
                   onClick={() => removeDistributor(d.id)}
