@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
 import { 
-  ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  AreaChart, Area, ReferenceLine, FunnelChart, Funnel, LabelList, Cell
+  ResponsiveContainer, Tooltip, Legend, CartesianGrid, 
+  AreaChart, Area, ReferenceLine, XAxis, YAxis
 } from 'recharts';
-import { Download, AlertCircle, X, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, Activity, Users, DollarSign, Percent } from 'lucide-react';
+import { Download, AlertCircle, X, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, Activity, DollarSign, Percent } from 'lucide-react';
 import { exportToExcel } from '../ExcelExport';
 import { useTheme } from '../ThemeContext';
 
@@ -151,19 +151,6 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
     );
   };
 
-  // Data for Funnel (Top 5 by Actual Amount)
-  const funnelColors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316'];
-  const funnelData = useMemo(() => {
-    return [...distributors]
-      .sort((a, b) => (b.actualAmount || 0) - (a.actualAmount || 0))
-      .slice(0, 5)
-      .map((d, i) => ({
-        name: d.name || 'Unnamed',
-        value: d.actualAmount || 0,
-        fill: funnelColors[i % funnelColors.length]
-      }));
-  }, [distributors]);
-
   // Data for Area Chart
   const lineChartData = useMemo(() => {
     return distributors.map(d => ({
@@ -172,13 +159,6 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
       difference: calculateDifference(d)
     }));
   }, [distributors]);
-
-  // Data for Target Bar
-  const targetData = [{
-    name: 'Total',
-    actual: totalActual,
-    difference: Math.max(0, totalDifference)
-  }];
 
   const customTooltipStyle = {
     backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
@@ -239,36 +219,10 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
       </div>
 
       {/* Middle Row: Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:gap-6">
         
-        {/* Left: Funnel Chart */}
-        <ChartCard title="Top 5 by Actual Amount" className="lg:col-span-4">
-          {funnelData.length > 0 ? (
-            <div className="h-64 md:h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <FunnelChart>
-                  <Tooltip 
-                    formatter={(value: any) => formatCurrency(Number(value || 0), currency)}
-                    contentStyle={customTooltipStyle}
-                    itemStyle={{ color: theme === 'dark' ? '#cbd5e1' : '#475569', fontWeight: 500 }}
-                  />
-                  <Funnel
-                    dataKey="value"
-                    data={funnelData}
-                    isAnimationActive
-                  >
-                    <LabelList position="center" fill="#fff" stroke="none" dataKey="name" fontSize={13} fontWeight={600} />
-                  </Funnel>
-                </FunnelChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-64 md:h-80 flex items-center justify-center text-slate-400 dark:text-slate-500 italic text-sm">No data available</div>
-          )}
-        </ChartCard>
-
         {/* Middle: Area Chart Trend */}
-        <ChartCard title="Actual vs Difference Trend" className="lg:col-span-8">
+        <ChartCard title="Actual vs Difference Trend" className="w-full">
           {distributors.length > 0 ? (
             <div className="h-64 md:h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -317,52 +271,12 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
         </ChartCard>
       </div>
 
-      {/* Bottom Row: Target Bar & Data Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-        {/* Left: Target Bar */}
-        <ChartCard title="Difference vs Target" className="lg:col-span-4">
-          {totalActual > 0 ? (
-            <div className="h-72 md:h-96 w-full relative flex flex-col justify-center">
-              <div className="absolute top-0 right-0 text-right">
-                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Target (Actual)</div>
-                <div className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(totalActual, currency)}</div>
-              </div>
-              <div className="absolute top-0 left-0 text-left">
-                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Achieved (Diff)</div>
-                <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(totalDifference, currency)}</div>
-              </div>
-              
-              <div className="mt-16 h-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={targetData} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-                    <Tooltip 
-                      contentStyle={customTooltipStyle}
-                      formatter={(value: any, name: string) => [formatCurrency(Number(value || 0), currency), name]}
-                      cursor={{ fill: theme === 'dark' ? '#334155' : '#f1f5f9', opacity: 0.4 }}
-                    />
-                    <XAxis dataKey="name" hide />
-                    <YAxis hide domain={[0, Math.max(totalActual, totalDifference) * 1.1]} />
-                    {/* Background bar representing the target (Actual) */}
-                    <Bar dataKey="actual" fill={theme === 'dark' ? '#334155' : '#e2e8f0'} radius={[8, 8, 0, 0]} barSize={80} />
-                    {/* Foreground bar representing the progress (Difference) */}
-                    <Bar dataKey="difference" fill="#6366f1" radius={[8, 8, 0, 0]} barSize={80} style={{ transform: 'translateX(-80px)' }}>
-                      {targetData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill="url(#colorActual)" />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          ) : (
-            <div className="h-72 md:h-96 flex items-center justify-center text-slate-400 dark:text-slate-500 italic text-sm">No data available</div>
-          )}
-        </ChartCard>
-
+      {/* Bottom Row: Data Table */}
+      <div className="grid grid-cols-1 gap-4 md:gap-6">
         {/* Right: Data Table */}
         <ChartCard 
           title="Calculations Breakdown" 
-          className="lg:col-span-8"
+          className="w-full"
           action={
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <div className="flex items-center gap-2">
