@@ -72,6 +72,8 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
   const [endDate, setEndDate] = useState<string>('');
   const { theme } = useTheme();
 
+  const today = new Date().toISOString().split('T')[0];
+
   const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
   const totalDiscount = distributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
   const totalDifference = totalActual - totalDiscount;
@@ -366,6 +368,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
               <div className="flex items-center gap-2">
                 <input
                   type="date"
+                  max={today}
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -374,6 +377,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                 <span className="text-slate-400 text-xs">to</span>
                 <input
                   type="date"
+                  max={today}
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -391,7 +395,32 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
             </div>
           }
         >
-          <div className="overflow-x-auto">
+          {/* Mobile Sort Dropdown */}
+          <div className="md:hidden mb-4 flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Sort by:</span>
+            <select 
+              className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
+              value={`${sortConfig.key}-${sortConfig.direction}`}
+              onChange={(e) => {
+                const [key, direction] = e.target.value.split('-');
+                setSortConfig({ key: key as SortKey, direction: direction as SortDirection });
+              }}
+            >
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+              <option value="actualAmount-desc">Actual (High to Low)</option>
+              <option value="actualAmount-asc">Actual (Low to High)</option>
+              <option value="discountAmount-desc">Discount (High to Low)</option>
+              <option value="discountAmount-asc">Discount (Low to High)</option>
+              <option value="difference-desc">Difference (High to Low)</option>
+              <option value="difference-asc">Difference (Low to High)</option>
+              <option value="percentage-desc">% Diff (High to Low)</option>
+              <option value="percentage-asc">% Diff (Low to High)</option>
+            </select>
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -437,6 +466,44 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {sortedDistributors.length === 0 ? (
+              <div className="py-12 text-center text-slate-500 dark:text-slate-400 italic text-sm">No data available</div>
+            ) : (
+              sortedDistributors.map(d => {
+                const diff = calculateDifference(d);
+                const pct = calculatePercentage(d);
+                return (
+                  <div key={d.id} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="font-medium text-slate-900 dark:text-white">{d.name || 'Unnamed'}</div>
+                      <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-lg text-xs font-semibold">
+                        {pct.toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Actual</div>
+                        <div className="text-slate-600 dark:text-slate-300 font-medium">{formatCurrency(d.actualAmount || 0, currency)}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Discount</div>
+                        <div className="text-slate-600 dark:text-slate-300 font-medium">{formatCurrency(d.discountAmount || 0, currency)}</div>
+                      </div>
+                      <div className="col-span-2 pt-3 mt-1 border-t border-slate-200 dark:border-slate-700">
+                        <div className="flex justify-between items-center">
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Difference</div>
+                          <div className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(diff, currency)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </ChartCard>
       </div>

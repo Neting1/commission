@@ -14,6 +14,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
   const [past, setPast] = useState<Distributor[][]>([]);
   const [future, setFuture] = useState<Distributor[][]>([]);
 
+  const today = new Date().toISOString().split('T')[0];
+
   useEffect(() => {
     if (warning) {
       const timer = setTimeout(() => setWarning(null), 3000);
@@ -129,6 +131,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Date</label>
                 <input
                   type="date"
+                  max={today}
                   value={d.date || ''}
                   onChange={(e) => updateDistributor(d.id, 'date', e.target.value)}
                   className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white"
