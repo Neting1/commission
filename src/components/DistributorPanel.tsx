@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, Undo2, Redo2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
 
@@ -11,6 +11,8 @@ interface Props {
 
 export default function DistributorPanel({ distributors, setDistributors, currency }: Props) {
   const [warning, setWarning] = useState<string | null>(null);
+  const [past, setPast] = useState<Distributor[][]>([]);
+  const [future, setFuture] = useState<Distributor[][]>([]);
 
   useEffect(() => {
     if (warning) {
@@ -19,8 +21,33 @@ export default function DistributorPanel({ distributors, setDistributors, curren
     }
   }, [warning]);
 
+  const handleSetDistributors = (newDistributors: Distributor[] | ((prev: Distributor[]) => Distributor[])) => {
+    setDistributors((prev) => {
+      const next = typeof newDistributors === 'function' ? newDistributors(prev) : newDistributors;
+      setPast((p) => [...p, prev]);
+      setFuture([]);
+      return next;
+    });
+  };
+
+  const undo = () => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    setPast(past.slice(0, -1));
+    setFuture([distributors, ...future]);
+    setDistributors(previous);
+  };
+
+  const redo = () => {
+    if (future.length === 0) return;
+    const next = future[0];
+    setFuture(future.slice(1));
+    setPast([...past, distributors]);
+    setDistributors(next);
+  };
+
   const addDistributor = () => {
-    setDistributors([
+    handleSetDistributors([
       ...distributors,
       {
         id: uuidv4(),
@@ -34,11 +61,11 @@ export default function DistributorPanel({ distributors, setDistributors, curren
   };
 
   const removeDistributor = (id: string) => {
-    setDistributors(distributors.filter((d) => d.id !== id));
+    handleSetDistributors(distributors.filter((d) => d.id !== id));
   };
 
   const updateDistributor = (id: string, field: keyof Distributor, value: any) => {
-    setDistributors(
+    handleSetDistributors(
       distributors.map((d) => {
         if (d.id === id) {
           if ((field === 'actualAmount' || field === 'discountAmount') && value < 0) {
@@ -55,13 +82,32 @@ export default function DistributorPanel({ distributors, setDistributors, curren
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
       <div className="flex justify-between items-center mb-4 md:mb-6">
         <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white">Calculations</h2>
-        <button
-          onClick={addDistributor}
-          className="flex items-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors text-xs md:text-sm font-medium"
-        >
-          <Plus size={14} md:size={16} />
-          Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={undo}
+            disabled={past.length === 0}
+            className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Undo"
+          >
+            <Undo2 size={18} />
+          </button>
+          <button
+            onClick={redo}
+            disabled={future.length === 0}
+            className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Redo"
+          >
+            <Redo2 size={18} />
+          </button>
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+          <button
+            onClick={addDistributor}
+            className="flex items-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors text-xs md:text-sm font-medium"
+          >
+            <Plus size={14} md:size={16} />
+            Add
+          </button>
+        </div>
       </div>
 
       {warning && (
