@@ -28,6 +28,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         name: '',
         actualAmount: 0,
         discountAmount: 0,
+        date: new Date().toISOString().split('T')[0],
       },
     ]);
   };
@@ -78,7 +79,16 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         <div className="space-y-4">
           {distributors.map((d) => (
             <div key={d.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
+                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Date</label>
+                <input
+                  type="date"
+                  value={d.date || ''}
+                  onChange={(e) => updateDistributor(d.id, 'date', e.target.value)}
+                  className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white"
+                />
+              </div>
+              <div className="md:col-span-2">
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Name</label>
                 <input
                   type="text"
@@ -89,7 +99,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Actual Amount ({currency.symbol})</label>
+                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Actual ({currency.symbol})</label>
                 <input
                   type="number"
                   min="0"
@@ -100,7 +110,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Discount Amount ({currency.symbol})</label>
+                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Discount ({currency.symbol})</label>
                 <input
                   type="number"
                   min="0"
@@ -110,8 +120,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-2 py-1.5 md:px-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
-              <div className="md:col-span-2 flex flex-col justify-end h-full pb-1 md:pb-2">
-                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Difference</label>
+              <div className="md:col-span-1 flex flex-col justify-end h-full pb-1 md:pb-2">
+                <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Diff</label>
                 <div className="text-xs md:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
                   {formatCurrency(calculateDifference(d), currency)}
                 </div>

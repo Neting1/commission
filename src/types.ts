@@ -6,6 +6,7 @@ export interface Distributor {
   name: string;
   actualAmount: number;
   discountAmount: number;
+  date?: string; // ISO date string YYYY-MM-DD
 }
 
 export interface Currency {

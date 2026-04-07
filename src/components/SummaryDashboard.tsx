@@ -68,6 +68,8 @@ const ChartCard = ({ title, children, action, className = '' }: { title: string,
 export default function SummaryDashboard({ distributors, currency }: Props) {
   const [exportError, setExportError] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const { theme } = useTheme();
 
   const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
@@ -81,7 +83,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
   const handleExport = async () => {
     setExportError(null);
     try {
-      await exportToExcel(distributors, currency);
+      await exportToExcel(distributors, currency, startDate || undefined, endDate || undefined);
     } catch (error) {
       console.error('Failed to export to Excel:', error);
       setExportError('Failed to generate Excel file. Please try again.');
@@ -360,14 +362,33 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
           title="Calculations Breakdown" 
           className="lg:col-span-8"
           action={
-            <button
-              onClick={handleExport}
-              disabled={distributors.length === 0}
-              className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 px-4 py-2 rounded-xl transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download size={16} />
-              Export
-            </button>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  title="Start Date"
+                />
+                <span className="text-slate-400 text-xs">to</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-2 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  title="End Date"
+                />
+              </div>
+              <button
+                onClick={handleExport}
+                disabled={distributors.length === 0}
+                className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 px-4 py-2 rounded-xl transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download size={16} />
+                Export
+              </button>
+            </div>
           }
         >
           <div className="overflow-x-auto">
