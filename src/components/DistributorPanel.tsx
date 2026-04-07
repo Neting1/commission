@@ -16,6 +16,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
 
   const today = new Date().toISOString().split('T')[0];
 
+  const uniqueNames = Array.from(new Set(distributors.map(d => (d.name || '').trim()).filter(Boolean)));
+
   useEffect(() => {
     if (warning) {
       const timer = setTimeout(() => setWarning(null), 3000);
@@ -125,6 +127,11 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         </div>
       ) : (
         <div className="space-y-4">
+          <datalist id="distributor-names">
+            {uniqueNames.map(name => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
           {distributors.map((d) => (
             <div key={d.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700">
               <div className="md:col-span-2">
@@ -141,6 +148,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 <label className="block text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Name</label>
                 <input
                   type="text"
+                  list="distributor-names"
                   value={d.name}
                   onChange={(e) => updateDistributor(d.id, 'name', e.target.value)}
                   placeholder="Name"

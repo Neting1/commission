@@ -74,18 +74,47 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
-  const totalDiscount = distributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
+  const filteredTransactions = useMemo(() => {
+    return distributors.filter(d => {
+      if (!d.date) return true;
+      if (startDate && d.date < startDate) return false;
+      if (endDate && d.date > endDate) return false;
+      return true;
+    });
+  }, [distributors, startDate, endDate]);
+
+  const groupedDistributors = useMemo(() => {
+    const map = new Map<string, Distributor>();
+    filteredTransactions.forEach(d => {
+      const name = (d.name || 'Unnamed').trim();
+      if (map.has(name)) {
+        const existing = map.get(name)!;
+        existing.actualAmount += (d.actualAmount || 0);
+        existing.discountAmount += (d.discountAmount || 0);
+      } else {
+        map.set(name, {
+          id: name,
+          name: name,
+          actualAmount: d.actualAmount || 0,
+          discountAmount: d.discountAmount || 0,
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [filteredTransactions]);
+
+  const totalActual = groupedDistributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
+  const totalDiscount = groupedDistributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
   const totalDifference = totalActual - totalDiscount;
   
   const avgDiscountPct = totalActual ? (totalDiscount / totalActual) * 100 : 0;
   const overallDiffPct = totalActual ? (totalDifference / totalActual) * 100 : 0;
-  const avgActual = distributors.length ? totalActual / distributors.length : 0;
+  const avgActual = groupedDistributors.length ? totalActual / groupedDistributors.length : 0;
 
   const handleExport = async () => {
     setExportError(null);
     try {
-      await exportToExcel(distributors, currency, startDate || undefined, endDate || undefined);
+      await exportToExcel(filteredTransactions, groupedDistributors, currency, startDate || undefined, endDate || undefined);
     } catch (error) {
       console.error('Failed to export to Excel:', error);
       setExportError('Failed to generate Excel file. Please try again.');
@@ -101,7 +130,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
   };
 
   const sortedDistributors = useMemo(() => {
-    let sortableItems = [...distributors];
+    let sortableItems = [...groupedDistributors];
     sortableItems.sort((a, b) => {
       let aValue: any = 0;
       let bValue: any = 0;
@@ -138,7 +167,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
       return 0;
     });
     return sortableItems;
-  }, [distributors, sortConfig]);
+  }, [groupedDistributors, sortConfig]);
 
   const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
     if (sortConfig.key !== columnKey) {
@@ -153,12 +182,12 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
 
   // Data for Area Chart
   const lineChartData = useMemo(() => {
-    return distributors.map(d => ({
+    return groupedDistributors.map(d => ({
       name: d.name || 'Unnamed',
       actual: d.actualAmount || 0,
       difference: calculateDifference(d)
     }));
-  }, [distributors]);
+  }, [groupedDistributors]);
 
   const customTooltipStyle = {
     backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
