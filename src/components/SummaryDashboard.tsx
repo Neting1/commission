@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Download, TrendingUp, DollarSign, AlertCircle, X, Percent } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Download, TrendingUp, DollarSign, AlertCircle, X, Percent, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { exportToExcel } from '../ExcelExport';
 import { useTheme } from '../ThemeContext';
+
+type SortKey = 'name' | 'actualAmount' | 'discountAmount' | 'difference' | 'percentage';
+type SortDirection = 'asc' | 'desc';
+
+interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+}
 
 interface Props {
   distributors: Distributor[];
@@ -12,6 +20,7 @@ interface Props {
 
 export default function SummaryDashboard({ distributors, currency }: Props) {
   const [exportError, setExportError] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
   const { theme } = useTheme();
 
   const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
@@ -28,10 +37,78 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
     }
   };
 
+  const handleSort = (key: SortKey) => {
+    let direction: SortDirection = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedDistributors = useMemo(() => {
+    let sortableItems = [...distributors];
+    sortableItems.sort((a, b) => {
+      let aValue: any = 0;
+      let bValue: any = 0;
+
+      switch (sortConfig.key) {
+        case 'name':
+          aValue = (a.name || '').toLowerCase();
+          bValue = (b.name || '').toLowerCase();
+          break;
+        case 'actualAmount':
+          aValue = a.actualAmount || 0;
+          bValue = b.actualAmount || 0;
+          break;
+        case 'discountAmount':
+          aValue = a.discountAmount || 0;
+          bValue = b.discountAmount || 0;
+          break;
+        case 'difference':
+          aValue = calculateDifference(a);
+          bValue = calculateDifference(b);
+          break;
+        case 'percentage':
+          aValue = calculatePercentage(a);
+          bValue = calculatePercentage(b);
+          break;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+    return sortableItems;
+  }, [distributors, sortConfig]);
+
+  const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
+    if (sortConfig.key !== columnKey) {
+      return <ArrowUpDown size={14} className="text-slate-400 opacity-50" />;
+    }
+    return sortConfig.direction === 'asc' ? (
+      <ArrowUp size={14} className="text-indigo-600 dark:text-indigo-400" />
+    ) : (
+      <ArrowDown size={14} className="text-indigo-600 dark:text-indigo-400" />
+    );
+  };
+
   const chartData = [
     { name: 'Total Difference', value: Math.max(0, totalDifference), color: '#10b981' }, // emerald-500
     { name: 'Total Discount', value: Math.max(0, totalDiscount), color: '#6366f1' }, // indigo-500
   ];
+
+  const barChartData = useMemo(() => {
+    return distributors.map(d => ({
+      name: d.name || 'Unnamed',
+      actual: d.actualAmount || 0,
+      discount: d.discountAmount || 0,
+      difference: calculateDifference(d)
+    }));
+  }, [distributors]);
 
   return (
     <div className="space-y-6">
@@ -99,20 +176,30 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700 text-[10px] md:text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <th className="p-2 md:pb-3 font-medium">Name</th>
-                  <th className="p-2 md:pb-3 font-medium text-right">Actual Amount</th>
-                  <th className="p-2 md:pb-3 font-medium text-right">Discount Amount</th>
-                  <th className="p-2 md:pb-3 font-medium text-right">Difference</th>
-                  <th className="p-2 md:pb-3 font-medium text-right">% Diff</th>
+                  <th className="p-2 md:pb-3 font-medium cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('name')}>
+                    <div className="flex items-center gap-1">Name <SortIcon columnKey="name" /></div>
+                  </th>
+                  <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('actualAmount')}>
+                    <div className="flex items-center justify-end gap-1">Actual Amount <SortIcon columnKey="actualAmount" /></div>
+                  </th>
+                  <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('discountAmount')}>
+                    <div className="flex items-center justify-end gap-1">Discount Amount <SortIcon columnKey="discountAmount" /></div>
+                  </th>
+                  <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('difference')}>
+                    <div className="flex items-center justify-end gap-1">Difference <SortIcon columnKey="difference" /></div>
+                  </th>
+                  <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('percentage')}>
+                    <div className="flex items-center justify-end gap-1">% Diff <SortIcon columnKey="percentage" /></div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="text-xs md:text-sm">
-                {distributors.length === 0 ? (
+                {sortedDistributors.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400 italic">No data available</td>
                   </tr>
                 ) : (
-                  distributors.map(d => {
+                  sortedDistributors.map(d => {
                     const diff = calculateDifference(d);
                     const pct = calculatePercentage(d);
                     
@@ -176,6 +263,55 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6">
+        <h2 className="text-lg md:text-xl font-semibold text-slate-800 dark:text-white mb-4 md:mb-6">Actual vs Discount by Distributor</h2>
+        {distributors.length > 0 ? (
+          <div className="h-72 md:h-96 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={barChartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  stroke={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                  tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 12 }}
+                  tickLine={{ stroke: theme === 'dark' ? '#334155' : '#e2e8f0' }}
+                  axisLine={{ stroke: theme === 'dark' ? '#334155' : '#e2e8f0' }}
+                />
+                <YAxis 
+                  stroke={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                  tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 12 }}
+                  tickLine={{ stroke: theme === 'dark' ? '#334155' : '#e2e8f0' }}
+                  axisLine={{ stroke: theme === 'dark' ? '#334155' : '#e2e8f0' }}
+                  tickFormatter={(value) => `${currency.symbol}${value}`}
+                />
+                <Tooltip
+                  formatter={(value: number) => formatCurrency(value, currency)}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0', 
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                    backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+                    color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+                  }}
+                  itemStyle={{ color: theme === 'dark' ? '#cbd5e1' : '#475569' }}
+                  cursor={{ fill: theme === 'dark' ? '#334155' : '#f1f5f9', opacity: 0.4 }}
+                />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Bar dataKey="actual" name="Actual Amount" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="discount" name="Discount Amount" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-72 md:h-96 flex items-center justify-center text-slate-400 dark:text-slate-500 italic text-xs md:text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+            No data available for analysis
+          </div>
+        )}
       </div>
     </div>
   );
