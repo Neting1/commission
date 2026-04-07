@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ComposedChart, Line } from 'recharts';
+import { 
+  ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  LineChart, Line, ReferenceLine, FunnelChart, Funnel, LabelList 
+} from 'recharts';
 import { Download, AlertCircle, X, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { exportToExcel } from '../ExcelExport';
 import { useTheme } from '../ThemeContext';
@@ -18,10 +21,28 @@ interface Props {
   currency: Currency;
 }
 
-const DashboardPanel = ({ title, children, action, className = '' }: { title: string, children: React.ReactNode, action?: React.ReactNode, className?: string }) => (
-  <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden ${className}`}>
-    <div className="bg-[#155eaf] text-white px-4 py-2.5 text-sm font-semibold flex justify-between items-center">
-      <span>{title}</span>
+const KPIBox = ({ title, value, subtitle, subValue, trend }: { title: string, value: string, subtitle?: string, subValue?: string, trend?: 'up' | 'down' }) => (
+  <div className="bg-[#4a90e2] text-white p-4 flex flex-col justify-center items-center rounded shadow-sm relative overflow-hidden">
+    <h3 className="text-xs md:text-sm font-medium text-blue-100 mb-1 z-10 text-center">{title}</h3>
+    <div className="flex items-center gap-1 z-10">
+      <span className="text-2xl md:text-3xl font-bold">{value}</span>
+      {trend === 'up' && <ArrowUp size={16} className="text-green-300" />}
+      {trend === 'down' && <ArrowDown size={16} className="text-red-300" />}
+    </div>
+    {(subtitle || subValue) && (
+      <div className="text-[10px] md:text-xs text-blue-100 mt-2 z-10 text-center">
+        {subtitle} {subValue}
+      </div>
+    )}
+    {/* Subtle background gradient/overlay for depth */}
+    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+  </div>
+);
+
+const DarkPanel = ({ title, children, action, className = '' }: { title: string, children: React.ReactNode, action?: React.ReactNode, className?: string }) => (
+  <div className={`bg-[#233044] rounded shadow-sm border border-[#2d3d54] flex flex-col overflow-hidden ${className}`}>
+    <div className="border-b border-[#2d3d54] px-4 py-3 flex justify-between items-center">
+      <h2 className="text-sm font-semibold text-white">{title}</h2>
       {action && <div>{action}</div>}
     </div>
     <div className="p-4 flex-1 flex flex-col">
@@ -33,11 +54,14 @@ const DashboardPanel = ({ title, children, action, className = '' }: { title: st
 export default function SummaryDashboard({ distributors, currency }: Props) {
   const [exportError, setExportError] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
-  const { theme } = useTheme();
 
   const totalActual = distributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
   const totalDiscount = distributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
   const totalDifference = totalActual - totalDiscount;
+  
+  const avgDiscountPct = totalActual ? (totalDiscount / totalActual) * 100 : 0;
+  const overallDiffPct = totalActual ? (totalDifference / totalActual) * 100 : 0;
+  const avgActual = distributors.length ? totalActual / distributors.length : 0;
 
   const handleExport = async () => {
     setExportError(null);
@@ -99,183 +123,212 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
 
   const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
     if (sortConfig.key !== columnKey) {
-      return <ArrowUpDown size={14} className="text-slate-400 opacity-50" />;
+      return <ArrowUpDown size={14} className="text-slate-500 opacity-50" />;
     }
     return sortConfig.direction === 'asc' ? (
-      <ArrowUp size={14} className="text-[#155eaf] dark:text-blue-400" />
+      <ArrowUp size={14} className="text-[#4a90e2]" />
     ) : (
-      <ArrowDown size={14} className="text-[#155eaf] dark:text-blue-400" />
+      <ArrowDown size={14} className="text-[#4a90e2]" />
     );
   };
 
-  const chartData = [
-    { name: 'Difference', value: Math.max(0, totalDifference), color: '#54b8b1' }, // Teal
-    { name: 'Discount', value: Math.max(0, totalDiscount), color: '#f97316' }, // Orange
-  ];
+  // Data for Funnel (Top 5 by Actual Amount)
+  const funnelColors = ['#2dd4bf', '#3b82f6', '#1d4ed8', '#f97316', '#eab308'];
+  const funnelData = useMemo(() => {
+    return [...distributors]
+      .sort((a, b) => (b.actualAmount || 0) - (a.actualAmount || 0))
+      .slice(0, 5)
+      .map((d, i) => ({
+        name: d.name || 'Unnamed',
+        value: d.actualAmount || 0,
+        fill: funnelColors[i % funnelColors.length]
+      }));
+  }, [distributors]);
 
-  const barChartData = useMemo(() => {
+  // Data for Line Chart
+  const lineChartData = useMemo(() => {
     return distributors.map(d => ({
       name: d.name || 'Unnamed',
       actual: d.actualAmount || 0,
-      discount: d.discountAmount || 0,
-      difference: calculateDifference(d),
-      percentage: calculatePercentage(d)
+      difference: calculateDifference(d)
     }));
   }, [distributors]);
 
-  const horizontalBarColors = ['#2563eb', '#54b8b1', '#94a3b8', '#64748b'];
+  // Data for Target Bar
+  const targetData = [{
+    name: 'Total',
+    actual: totalActual,
+    difference: Math.max(0, totalDifference)
+  }];
+
+  const customTooltipStyle = {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+    color: '#f8fafc',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)'
+  };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="bg-[#17202e] min-h-screen p-4 md:p-6 rounded-xl space-y-6 font-sans">
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Calculations Overview</h1>
+      </div>
+
       {exportError && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg flex items-start gap-3">
+        <div className="p-4 bg-red-900/40 border border-red-800 text-red-200 rounded-lg flex items-start gap-3">
           <AlertCircle size={20} className="shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-medium">{exportError}</p>
           </div>
-          <button onClick={() => setExportError(null)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+          <button onClick={() => setExportError(null)} className="text-red-400 hover:text-red-300">
             <X size={18} />
           </button>
         </div>
       )}
 
-      {/* Top Row: KPIs, Horizontal Bar, Donut */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        <DashboardPanel title="Difference and Actual Amount">
-          <div className="flex flex-col items-center justify-center h-full py-6">
-            <span className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-2">Total Difference</span>
-            <span className="text-4xl md:text-5xl font-light text-[#2563eb] dark:text-blue-400 mb-6">
-              {formatCurrency(totalDifference, currency)}
-            </span>
-            <div className="flex gap-6 text-sm text-slate-500 dark:text-slate-400 font-medium">
-              <div className="flex flex-col items-center">
-                <span className="text-xs uppercase tracking-wider mb-1">Total Actual</span>
-                <span className="text-slate-700 dark:text-slate-300">{formatCurrency(totalActual, currency)}</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs uppercase tracking-wider mb-1">Total Discount</span>
-                <span className="text-slate-700 dark:text-slate-300">{formatCurrency(totalDiscount, currency)}</span>
-              </div>
-            </div>
-          </div>
-        </DashboardPanel>
-
-        <DashboardPanel title="Difference Percentage by Distributor">
-          {distributors.length > 0 ? (
-            <div className="h-48 md:h-56 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barChartData} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 11 }} width={80} />
-                  <Tooltip
-                    formatter={(value: any) => `${Number(value || 0).toFixed(2)}%`}
-                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
-                  />
-                  <Bar dataKey="percentage" barSize={16}>
-                    {barChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={horizontalBarColors[index % horizontalBarColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-48 md:h-56 flex items-center justify-center text-slate-400 italic text-sm">No data available</div>
-          )}
-        </DashboardPanel>
-
-        <DashboardPanel title="Amount Breakdown">
-          {totalActual > 0 ? (
-            <div className="h-48 md:h-56 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={2}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: any) => formatCurrency(Number(value || 0), currency)}
-                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
-                  />
-                  <Legend verticalAlign="bottom" iconType="square" wrapperStyle={{ fontSize: '11px', color: theme === 'dark' ? '#cbd5e1' : '#475569' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-48 md:h-56 flex items-center justify-center text-slate-400 italic text-sm">No data available</div>
-          )}
-        </DashboardPanel>
+      {/* Top Row: KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <KPIBox 
+          title="Total Actual" 
+          value={formatCurrency(totalActual, currency)} 
+          subtitle="% Diff Overall:" 
+          subValue={`${overallDiffPct.toFixed(2)}%`}
+          trend={overallDiffPct >= 0 ? 'up' : 'down'}
+        />
+        <KPIBox 
+          title="Total Difference" 
+          value={formatCurrency(totalDifference, currency)} 
+        />
+        <KPIBox 
+          title="Total Discount" 
+          value={formatCurrency(totalDiscount, currency)} 
+          subtitle="Avg Discount:"
+          subValue={`${avgDiscountPct.toFixed(2)}%`}
+        />
+        <KPIBox 
+          title="Distributors" 
+          value={distributors.length.toString()} 
+          trend="up"
+        />
+        <KPIBox 
+          title="Avg Actual / Dist" 
+          value={formatCurrency(avgActual, currency)} 
+        />
+        <KPIBox 
+          title="Overall % Diff" 
+          value={`${overallDiffPct.toFixed(2)}%`} 
+          trend={overallDiffPct >= 0 ? 'up' : 'down'}
+        />
       </div>
 
-      {/* Middle Row: Combo Chart */}
-      <DashboardPanel title="Actual Amount vs Difference Percentage">
-        {distributors.length > 0 ? (
-          <div className="h-72 md:h-80 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={barChartData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 11 }} 
-                  dy={10}
-                />
-                <YAxis 
-                  yAxisId="left" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tickFormatter={(val) => `${currency.symbol}${val}`} 
-                  tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 11 }} 
-                  dx={-10}
-                />
-                <YAxis 
-                  yAxisId="right" 
-                  orientation="right" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tickFormatter={(val) => `${val}%`} 
-                  tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 11 }} 
-                  dx={10}
-                />
-                <Tooltip
-                  contentStyle={{ backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
-                  formatter={(value: any, name: string) => {
-                    const numValue = Number(value || 0);
-                    if (name === '% Diff') return [`${numValue.toFixed(2)}%`, name];
-                    return [formatCurrency(numValue, currency), name];
-                  }}
-                />
-                <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} iconType="square" />
-                <Bar yAxisId="left" dataKey="actual" name="Actual Amount" fill="#54b8b1" barSize={32} />
-                <Bar yAxisId="left" dataKey="discount" name="Discount Amount" fill="#94a3b8" barSize={32} />
-                <Line yAxisId="right" type="monotone" dataKey="percentage" name="% Diff" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="h-72 md:h-80 flex items-center justify-center text-slate-400 italic text-sm">No data available</div>
-        )}
-      </DashboardPanel>
+      {/* Middle Row: Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+        
+        {/* Left: Funnel Chart */}
+        <DarkPanel title="Top Distributors by Actual" className="lg:col-span-3">
+          {funnelData.length > 0 ? (
+            <div className="h-64 md:h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <FunnelChart>
+                  <Tooltip 
+                    formatter={(value: any) => formatCurrency(Number(value || 0), currency)}
+                    contentStyle={customTooltipStyle}
+                    itemStyle={{ color: '#cbd5e1' }}
+                  />
+                  <Funnel
+                    dataKey="value"
+                    data={funnelData}
+                    isAnimationActive
+                  >
+                    <LabelList position="center" fill="#fff" stroke="none" dataKey="name" fontSize={12} />
+                  </Funnel>
+                </FunnelChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-64 md:h-80 flex items-center justify-center text-slate-500 italic text-sm">No data available</div>
+          )}
+        </DarkPanel>
+
+        {/* Middle: Line Chart Trend */}
+        <DarkPanel title="Actual vs Difference Trend" className="lg:col-span-7">
+          {distributors.length > 0 ? (
+            <div className="h-64 md:h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2d3d54" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#94a3b8" 
+                    tick={{ fill: '#94a3b8', fontSize: 11 }} 
+                    axisLine={{ stroke: '#2d3d54' }}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    stroke="#94a3b8" 
+                    tick={{ fill: '#94a3b8', fontSize: 11 }} 
+                    axisLine={{ stroke: '#2d3d54' }}
+                    tickLine={false}
+                    tickFormatter={(val) => `${currency.symbol}${val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={customTooltipStyle}
+                    formatter={(value: any, name: string) => [formatCurrency(Number(value || 0), currency), name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: '#cbd5e1', paddingTop: '10px' }} />
+                  <ReferenceLine y={avgActual} stroke="#2dd4bf" strokeDasharray="3 3" label={{ position: 'top', value: 'Avg Actual', fill: '#2dd4bf', fontSize: 10 }} />
+                  <Line type="monotone" dataKey="actual" name="Actual Amount" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#17202e', strokeWidth: 2, stroke: '#3b82f6' }} activeDot={{ r: 6, fill: '#3b82f6' }} />
+                  <Line type="monotone" dataKey="difference" name="Difference" stroke="#f97316" strokeWidth={3} dot={{ r: 4, fill: '#17202e', strokeWidth: 2, stroke: '#f97316' }} activeDot={{ r: 6, fill: '#f97316' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-64 md:h-80 flex items-center justify-center text-slate-500 italic text-sm">No data available</div>
+          )}
+        </DarkPanel>
+
+        {/* Right: Target Bar */}
+        <DarkPanel title="Difference vs Actual" className="lg:col-span-2">
+          {totalActual > 0 ? (
+            <div className="h-64 md:h-80 w-full relative flex justify-center items-end pb-8">
+              <div className="absolute top-2 right-2 text-xs text-slate-400 text-right">
+                <div>Actual Target</div>
+                <div className="font-bold text-white">{formatCurrency(totalActual, currency)}</div>
+              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={targetData} margin={{ top: 40, right: 10, left: 10, bottom: 0 }}>
+                  <Tooltip 
+                    contentStyle={customTooltipStyle}
+                    formatter={(value: any, name: string) => [formatCurrency(Number(value || 0), currency), name]}
+                    cursor={{ fill: 'transparent' }}
+                  />
+                  <XAxis dataKey="name" hide />
+                  <YAxis hide domain={[0, Math.max(totalActual, totalDifference) * 1.1]} />
+                  {/* Background bar representing the target (Actual) */}
+                  <Bar dataKey="actual" fill="#334155" radius={[4, 4, 0, 0]} barSize={60} />
+                  {/* Foreground bar representing the progress (Difference) */}
+                  <Bar dataKey="difference" fill="#60a5fa" radius={[4, 4, 0, 0]} barSize={60} style={{ transform: 'translateX(-60px)' }} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="absolute bottom-2 text-center w-full">
+                <div className="text-sm font-bold text-[#60a5fa]">{formatCurrency(totalDifference, currency)}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-64 md:h-80 flex items-center justify-center text-slate-500 italic text-sm">No data available</div>
+          )}
+        </DarkPanel>
+      </div>
 
       {/* Bottom Row: Data Table */}
-      <DashboardPanel 
+      <DarkPanel 
         title="Calculations Breakdown" 
         action={
           <button
             onClick={handleExport}
             disabled={distributors.length === 0}
-            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 bg-[#3b82f6] hover:bg-[#2563eb] text-white px-3 py-1.5 rounded transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download size={14} />
             Export
@@ -285,28 +338,28 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
         <div className="overflow-x-auto mt-2">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700 text-[10px] md:text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                <th className="p-2 md:pb-3 font-medium cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('name')}>
+              <tr className="border-b border-[#2d3d54] text-[10px] md:text-xs uppercase tracking-wider text-slate-400">
+                <th className="p-2 md:pb-3 font-medium cursor-pointer hover:bg-[#2d3d54]/50 transition-colors" onClick={() => handleSort('name')}>
                   <div className="flex items-center gap-1">Name <SortIcon columnKey="name" /></div>
                 </th>
-                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('actualAmount')}>
+                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-[#2d3d54]/50 transition-colors" onClick={() => handleSort('actualAmount')}>
                   <div className="flex items-center justify-end gap-1">Actual Amount <SortIcon columnKey="actualAmount" /></div>
                 </th>
-                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('discountAmount')}>
+                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-[#2d3d54]/50 transition-colors" onClick={() => handleSort('discountAmount')}>
                   <div className="flex items-center justify-end gap-1">Discount Amount <SortIcon columnKey="discountAmount" /></div>
                 </th>
-                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('difference')}>
+                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-[#2d3d54]/50 transition-colors" onClick={() => handleSort('difference')}>
                   <div className="flex items-center justify-end gap-1">Difference <SortIcon columnKey="difference" /></div>
                 </th>
-                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('percentage')}>
+                <th className="p-2 md:pb-3 font-medium text-right cursor-pointer hover:bg-[#2d3d54]/50 transition-colors" onClick={() => handleSort('percentage')}>
                   <div className="flex items-center justify-end gap-1">% Diff <SortIcon columnKey="percentage" /></div>
                 </th>
               </tr>
             </thead>
-            <tbody className="text-xs md:text-sm">
+            <tbody className="text-xs md:text-sm text-slate-200">
               {sortedDistributors.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400 italic">No data available</td>
+                  <td colSpan={5} className="py-8 text-center text-slate-500 italic">No data available</td>
                 </tr>
               ) : (
                 sortedDistributors.map(d => {
@@ -314,12 +367,12 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                   const pct = calculatePercentage(d);
                   
                   return (
-                    <tr key={d.id} className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                      <td className="p-2 md:py-3 font-medium text-slate-800 dark:text-slate-200">{d.name || 'Unnamed'}</td>
-                      <td className="p-2 md:py-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(d.actualAmount || 0, currency)}</td>
-                      <td className="p-2 md:py-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(d.discountAmount || 0, currency)}</td>
-                      <td className="p-2 md:py-3 text-right font-medium text-[#54b8b1]">{formatCurrency(diff, currency)}</td>
-                      <td className="p-2 md:py-3 text-right font-medium text-[#2563eb] dark:text-blue-400">{pct.toFixed(2)}%</td>
+                    <tr key={d.id} className="border-b border-[#2d3d54]/50 last:border-0 hover:bg-[#2d3d54]/30 transition-colors">
+                      <td className="p-2 md:py-3 font-medium text-white">{d.name || 'Unnamed'}</td>
+                      <td className="p-2 md:py-3 text-right text-slate-300">{formatCurrency(d.actualAmount || 0, currency)}</td>
+                      <td className="p-2 md:py-3 text-right text-slate-300">{formatCurrency(d.discountAmount || 0, currency)}</td>
+                      <td className="p-2 md:py-3 text-right font-medium text-[#2dd4bf]">{formatCurrency(diff, currency)}</td>
+                      <td className="p-2 md:py-3 text-right font-medium text-[#60a5fa]">{pct.toFixed(2)}%</td>
                     </tr>
                   );
                 })
@@ -327,7 +380,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
             </tbody>
           </table>
         </div>
-      </DashboardPanel>
+      </DarkPanel>
     </div>
   );
 }
