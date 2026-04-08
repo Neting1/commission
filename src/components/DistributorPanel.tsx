@@ -160,7 +160,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider" title="Estimated/Supposed Cost">Est. Cost ({currency.symbol})</label>
                 <NumericFormat
                   value={d.actualAmount !== undefined ? d.actualAmount : ''}
-                  onValueChange={(values) => {
+                  onValueChange={(values, sourceInfo) => {
+                    if (sourceInfo.source !== 'event') return;
                     const { floatValue } = values;
                     updateDistributor(d.id, 'actualAmount', floatValue);
                   }}
@@ -175,7 +176,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual Cost ({currency.symbol})</label>
                 <NumericFormat
                   value={d.discountAmount !== undefined ? d.discountAmount : ''}
-                  onValueChange={(values) => {
+                  onValueChange={(values, sourceInfo) => {
+                    if (sourceInfo.source !== 'event') return;
                     const { floatValue } = values;
                     updateDistributor(d.id, 'discountAmount', floatValue);
                   }}
@@ -198,7 +200,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   <NumericFormat
                     disabled={!d.actualAmount}
                     value={d.discountAmount !== undefined && d.actualAmount ? Number(calculatePercentage(d).toFixed(2)) : ''}
-                    onValueChange={(values) => {
+                    onValueChange={(values, sourceInfo) => {
+                      if (sourceInfo.source !== 'event') return;
                       const { floatValue } = values;
                       if (floatValue === undefined) {
                         updateDistributor(d.id, 'discountAmount', undefined);
