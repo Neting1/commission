@@ -3,8 +3,9 @@ import { Distributor, Currency, CURRENCIES } from './types';
 import DistributorPanel from './components/DistributorPanel';
 import SummaryDashboard from './components/SummaryDashboard';
 import UserManagement from './components/UserManagement';
+import ProfileSettings from './components/ProfileSettings';
 import ThemeToggle from './components/ThemeToggle';
-import { Calculator, PieChart, Users, Settings, LogOut, ShieldAlert, UserCog } from 'lucide-react';
+import { Calculator, PieChart, Users, Settings, LogOut, ShieldAlert, UserCog, Shield } from 'lucide-react';
 import { AuthProvider, useAuth } from './AuthContext';
 import Login from './components/Login';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -19,7 +20,7 @@ function MainApp() {
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'distributors' | 'summary' | 'users'>('summary');
+  const [activeTab, setActiveTab] = useState<'distributors' | 'summary' | 'users' | 'profile'>('summary');
   const [error, setError] = useState<Error | null>(null);
 
   // Load data from Firestore on mount
@@ -185,6 +186,17 @@ function MainApp() {
             <PieChart size={18} />
             Summary
           </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
+              activeTab === 'profile' 
+                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+            }`}
+          >
+            <Shield size={18} />
+            Security
+          </button>
           {userProfile.role === 'admin' && (
             <button
               onClick={() => setActiveTab('users')}
@@ -218,6 +230,10 @@ function MainApp() {
 
           {userProfile.role === 'admin' && activeTab === 'users' && (
             <UserManagement />
+          )}
+
+          {activeTab === 'profile' && (
+            <ProfileSettings />
           )}
         </div>
       </main>
