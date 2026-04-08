@@ -11,7 +11,7 @@ service cloud.firestore {
     // Fields:
     //   - uid: string (required) - The user's unique ID
     //   - email: string (required) - The user's email address
-    //   - role: string (optional) - The user's role ('admin', 'manager', 'sales_rep')
+    //   - role: string (optional) - The user's role ('admin', 'manager', 'user')
     //   - name: string (optional) - The user's name
     //
     // Collection: global
@@ -68,7 +68,7 @@ service cloud.firestore {
       return hasRequiredFields(['uid', 'email']) &&
              data.uid is string && data.uid.size() > 0 && data.uid.size() < 128 &&
              isValidEmail(data.email) &&
-             (!('role' in data) || data.role in ['admin', 'manager', 'sales_rep']) &&
+             (!('role' in data) || data.role in ['admin', 'manager', 'user']) &&
              (!('name' in data) || data.name is string);
     }
 
@@ -83,8 +83,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin() || isManager();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && uidUnchanged();
-      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && uidNotModified() && (request.resource.data.role == resource.data.role || isAdmin())) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && uidUnchanged() && (!('role' in request.resource.data) || request.resource.data.role == 'user' || isAdmin());
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && uidNotModified() && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role || isAdmin())) || isAdmin();
       allow delete: if isAdmin();
     }
 

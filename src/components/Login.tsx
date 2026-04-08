@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { Calculator, Mail, Lock, Smartphone } from 'lucide-react';
-import { getMultiFactorResolver, PhoneAuthProvider, PhoneMultiFactorGenerator, RecaptchaVerifier, MultiFactorResolver } from 'firebase/auth';
-import { auth } from '../firebase';
+import { Calculator, Mail, Lock } from 'lucide-react';
 
 export default function Login() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
@@ -13,64 +11,6 @@ export default function Login() {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
-  const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
-  const [verificationId, setVerificationId] = useState('');
-  const [mfaCode, setMfaCode] = useState('');
-  const [showMfaInput, setShowMfaInput] = useState(false);
-
-  useEffect(() => {
-    // Cleanup recaptcha on unmount
-    return () => {
-      if ((window as any).recaptchaVerifier) {
-        (window as any).recaptchaVerifier.clear();
-        (window as any).recaptchaVerifier = null;
-      }
-    };
-  }, []);
-
-  const handleMfaSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!mfaCode || !mfaResolver || !verificationId) return;
-    
-    setLoading(true);
-    setError('');
-    try {
-      const cred = PhoneAuthProvider.credential(verificationId, mfaCode);
-      const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
-      await mfaResolver.resolveSignIn(multiFactorAssertion);
-    } catch (err: any) {
-      setError(err.message || 'Invalid 2FA code.');
-      setLoading(false);
-    }
-  };
-
-  const processMfaError = async (err: any) => {
-    if (err.code === 'auth/multi-factor-auth-required') {
-      const resolver = getMultiFactorResolver(auth, err);
-      setMfaResolver(resolver);
-      
-      if (!(window as any).recaptchaVerifier) {
-        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible',
-        });
-      }
-
-      const phoneInfoOptions = {
-        multiFactorHint: resolver.hints[0],
-        session: resolver.session
-      };
-      const phoneAuthProvider = new PhoneAuthProvider(auth);
-      try {
-        const vId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, (window as any).recaptchaVerifier);
-        setVerificationId(vId);
-        setShowMfaInput(true);
-      } catch (mfaErr: any) {
-        setError(mfaErr.message || 'Failed to send 2FA code.');
-      }
-    } else {
-      throw err;
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     // Start the sign-in process immediately to preserve the user gesture
@@ -83,9 +23,7 @@ export default function Login() {
       setLoading(true);
       await signInPromise;
     } catch (err: any) {
-      if (err.code === 'auth/multi-factor-auth-required') {
-        await processMfaError(err);
-      } else if (err.code === 'auth/email-already-in-use' || err.code === 'auth/account-exists-with-different-credential') {
+      if (err.code === 'auth/email-already-in-use' || err.code === 'auth/account-exists-with-different-credential') {
         setError('An account already exists with this email. Please sign in using your email and password instead, or enable "Link accounts that use the same email" in your Firebase Authentication settings.');
       } else if (err.code === 'auth/unauthorized-domain') {
         setError('This domain is not authorized for OAuth operations. You need to add this domain (e.g., your-app.vercel.app) to the "Authorized domains" list in your Firebase Console under Authentication > Settings.');
@@ -114,9 +52,7 @@ export default function Login() {
         await signInWithEmail(email, password);
       }
     } catch (err: any) {
-      if (err.code === 'auth/multi-factor-auth-required') {
-        await processMfaError(err);
-      } else if (err.code === 'auth/email-already-in-use') {
+      if (err.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists. Please switch to "Sign in" instead.');
       } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
         setError('Invalid email or password.');
@@ -197,62 +133,11 @@ export default function Login() {
             </div>
           )}
 
-          {showMfaInput ? (
-            <form className="space-y-6" onSubmit={handleMfaSubmit}>
-              <div>
-                <label htmlFor="mfaCode" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Verification Code
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-3">
-                  A verification code has been sent to your phone.
-                </p>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Smartphone className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                  </div>
-                  <input
-                    id="mfaCode"
-                    name="mfaCode"
-                    type="text"
-                    required
-                    value={mfaCode}
-                    onChange={(e) => setMfaCode(e.target.value)}
-                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 dark:border-slate-600 rounded-md py-2 border bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
-                    placeholder="123456"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? 'Verifying...' : 'Verify Code'}
-                </button>
-              </div>
-              
-              <div className="mt-4 text-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMfaInput(false);
-                    setMfaCode('');
-                    setError('');
-                  }}
-                  className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300"
-                >
-                  Back to login
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form className="space-y-6" onSubmit={handleEmailAuth}>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Email address
-                </label>
+          <form className="space-y-6" onSubmit={handleEmailAuth}>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Email address
+              </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-slate-400 dark:text-slate-500" />
@@ -317,13 +202,10 @@ export default function Login() {
                 </button>
               </div>
             </form>
-          )}
 
-          {!showMfaInput && (
-            <>
-              <div className="mt-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-300 dark:border-slate-600" />
                   </div>
                   <div className="relative flex justify-center text-sm">
@@ -377,9 +259,6 @@ export default function Login() {
                     : "Don't have an account? Sign up"}
                 </button>
               </div>
-            </>
-          )}
-          <div id="recaptcha-container"></div>
         </div>
       </div>
     </div>
