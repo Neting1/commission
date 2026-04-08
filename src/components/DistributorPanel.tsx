@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle, Undo2, Redo2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { NumericFormat } from 'react-number-format';
 import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
 
 interface Props {
@@ -157,22 +158,30 @@ export default function DistributorPanel({ distributors, setDistributors, curren
               </div>
               <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider" title="Estimated/Supposed Cost">Est. Cost ({currency.symbol})</label>
-                <input
-                  type="number"
-                  min="0"
+                <NumericFormat
                   value={d.actualAmount !== undefined ? d.actualAmount : ''}
-                  onChange={(e) => updateDistributor(d.id, 'actualAmount', e.target.value === '' ? undefined : parseFloat(e.target.value))}
+                  onValueChange={(values) => {
+                    const { floatValue } = values;
+                    updateDistributor(d.id, 'actualAmount', floatValue);
+                  }}
+                  thousandSeparator={true}
+                  decimalScale={2}
+                  allowNegative={false}
                   placeholder="0.00"
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
               <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual Cost ({currency.symbol})</label>
-                <input
-                  type="number"
-                  min="0"
+                <NumericFormat
                   value={d.discountAmount !== undefined ? d.discountAmount : ''}
-                  onChange={(e) => updateDistributor(d.id, 'discountAmount', e.target.value === '' ? undefined : parseFloat(e.target.value))}
+                  onValueChange={(values) => {
+                    const { floatValue } = values;
+                    updateDistributor(d.id, 'discountAmount', floatValue);
+                  }}
+                  thousandSeparator={true}
+                  decimalScale={2}
+                  allowNegative={false}
                   placeholder="0.00"
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
@@ -186,23 +195,23 @@ export default function DistributorPanel({ distributors, setDistributors, curren
               <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission Percentage">Profit %</label>
                 <div className="relative h-[38px]">
-                  <input
-                    type="number"
-                    step="any"
+                  <NumericFormat
                     disabled={!d.actualAmount}
                     value={d.discountAmount !== undefined && d.actualAmount ? Number(calculatePercentage(d).toFixed(2)) : ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === '') {
+                    onValueChange={(values) => {
+                      const { floatValue } = values;
+                      if (floatValue === undefined) {
                         updateDistributor(d.id, 'discountAmount', undefined);
                         return;
                       }
-                      const pct = parseFloat(val) || 0;
+                      const pct = floatValue || 0;
                       const estCost = d.actualAmount || 0;
                       let newActCost = estCost * (1 - (pct / 100));
                       newActCost = Math.round(newActCost * 100) / 100;
                       updateDistributor(d.id, 'discountAmount', newActCost < 0 ? 0 : newActCost);
                     }}
+                    thousandSeparator={true}
+                    decimalScale={2}
                     placeholder="0.00"
                     className="w-full h-full pl-2 sm:pl-3 pr-5 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 placeholder-emerald-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
