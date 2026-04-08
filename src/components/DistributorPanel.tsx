@@ -185,8 +185,29 @@ export default function DistributorPanel({ distributors, setDistributors, curren
               </div>
               <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission Percentage">Profit %</label>
-                <div className="h-[38px] flex items-center px-2 sm:px-3 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate">
-                  {calculatePercentage(d).toFixed(2)}%
+                <div className="relative h-[38px]">
+                  <input
+                    type="number"
+                    step="any"
+                    disabled={!d.actualAmount}
+                    value={d.actualAmount ? Number(calculatePercentage(d).toFixed(2)) : ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        updateDistributor(d.id, 'discountAmount', d.actualAmount || 0);
+                        return;
+                      }
+                      const pct = parseFloat(val) || 0;
+                      const estCost = d.actualAmount || 0;
+                      const newActCost = estCost * (1 - (pct / 100));
+                      updateDistributor(d.id, 'discountAmount', newActCost < 0 ? 0 : newActCost);
+                    }}
+                    placeholder="0.00"
+                    className="w-full h-full pl-2 sm:pl-3 pr-5 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 placeholder-emerald-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                    <span className="text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-semibold">%</span>
+                  </div>
                 </div>
               </div>
               <div className="sm:col-span-2 lg:w-12 lg:shrink-0 flex flex-col justify-end h-full">
