@@ -199,7 +199,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                       }
                       const pct = parseFloat(val) || 0;
                       const estCost = d.actualAmount || 0;
-                      const newActCost = estCost * (1 - (pct / 100));
+                      let newActCost = estCost * (1 - (pct / 100));
+                      newActCost = Math.round(newActCost * 100) / 100;
                       updateDistributor(d.id, 'discountAmount', newActCost < 0 ? 0 : newActCost);
                     }}
                     placeholder="0.00"
