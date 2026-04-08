@@ -133,8 +133,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
             ))}
           </datalist>
           {distributors.map((d) => (
-            <div key={d.id} className="group relative grid grid-cols-12 gap-3 md:gap-4 items-end bg-white dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all">
-              <div className="col-span-6 md:col-span-3 lg:col-span-2">
+            <div key={d.id} className="group relative grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row gap-3 md:gap-4 items-end bg-white dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all">
+              <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Date</label>
                 <input
                   type="date"
@@ -144,7 +144,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white"
                 />
               </div>
-              <div className="col-span-6 md:col-span-3 lg:col-span-3">
+              <div className="sm:col-span-1 lg:flex-1">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Name</label>
                 <input
                   type="text"
@@ -155,7 +155,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="col-span-6 md:col-span-3 lg:col-span-2">
+              <div className="sm:col-span-1 lg:w-36 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual ({currency.symbol})</label>
                 <input
                   type="number"
@@ -166,7 +166,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="col-span-6 md:col-span-3 lg:col-span-2">
+              <div className="sm:col-span-1 lg:w-36 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Discount ({currency.symbol})</label>
                 <input
                   type="number"
@@ -177,19 +177,19 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="col-span-4 md:col-span-4 lg:col-span-1 flex flex-col justify-end h-full">
+              <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Diff</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
                   {formatCurrency(calculateDifference(d), currency)}
                 </div>
               </div>
-              <div className="col-span-4 md:col-span-4 lg:col-span-1 flex flex-col justify-end h-full">
+              <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">% Diff</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate">
                   {calculatePercentage(d).toFixed(2)}%
                 </div>
               </div>
-              <div className="col-span-4 md:col-span-4 lg:col-span-1 flex flex-col justify-end h-full">
+              <div className="sm:col-span-2 lg:w-10 lg:shrink-0 flex flex-col justify-end h-full">
                 <div className="hidden lg:block h-[18px] mb-1.5"></div>
                 <button
                   onClick={() => removeDistributor(d.id)}
