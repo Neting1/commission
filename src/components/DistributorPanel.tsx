@@ -135,7 +135,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
           {distributors.map((d) => (
             <div key={d.id} className="group relative grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row gap-3 md:gap-4 items-end bg-white dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all">
               <div className="sm:col-span-1 lg:w-36 lg:shrink-0">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Date</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Date on Invoice</label>
                 <input
                   type="date"
                   max={today}
@@ -145,18 +145,18 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 />
               </div>
               <div className="sm:col-span-1 lg:flex-1 lg:min-w-[150px]">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Name</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Supplier</label>
                 <input
                   type="text"
                   list="distributor-names"
                   value={d.name}
                   onChange={(e) => updateDistributor(d.id, 'name', e.target.value)}
-                  placeholder="Name"
+                  placeholder="Supplier Name"
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
               <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual ({currency.symbol})</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider" title="Estimated/Supposed Cost">Est. Cost ({currency.symbol})</label>
                 <input
                   type="number"
                   min="0"
@@ -167,7 +167,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 />
               </div>
               <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Discount ({currency.symbol})</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual Cost ({currency.symbol})</label>
                 <input
                   type="number"
                   min="0"
@@ -178,13 +178,13 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 />
               </div>
               <div className="sm:col-span-1 lg:w-40 lg:shrink-0 flex flex-col justify-end h-full">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Diff</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission">Profit/Comm.</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
                   {formatCurrency(calculateDifference(d), currency)}
                 </div>
               </div>
               <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">% Diff</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission Percentage">Profit %</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate">
                   {calculatePercentage(d).toFixed(2)}%
                 </div>

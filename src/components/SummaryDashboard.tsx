@@ -247,7 +247,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
       {/* Top Row: KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <StatCard 
-          title="Total Actual" 
+          title="Total Estimated Cost" 
           value={formatCurrency(totalActual, currency)} 
           subValue={`${overallDiffPct.toFixed(2)}%`}
           trend={overallDiffPct >= 0 ? 'up' : 'down'}
@@ -255,17 +255,17 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
           colorClass="text-indigo-600 bg-indigo-600"
         />
         <StatCard 
-          title="Total Difference" 
+          title="Total Profit/Commission" 
           value={formatCurrency(totalDifference, currency)} 
-          subtitle="Avg Discount:"
+          subtitle="Avg Actual Cost:"
           subValue={`${avgDiscountPct.toFixed(2)}%`}
           icon={Activity}
           colorClass="text-emerald-500 bg-emerald-500"
         />
         <StatCard 
-          title="Total Discount" 
+          title="Total Actual Cost" 
           value={formatCurrency(totalDiscount, currency)} 
-          subtitle="Distributors:"
+          subtitle="Suppliers:"
           subValue={distributors.length.toString()}
           icon={Percent}
           colorClass="text-rose-500 bg-rose-500"
@@ -276,7 +276,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
       <div className="grid grid-cols-1 gap-4 md:gap-6">
         
         {/* Middle: Area Chart Trend */}
-        <ChartCard title="Actual vs Difference Trend" className="w-full">
+        <ChartCard title="Estimated Cost vs Profit Trend" className="w-full">
           {distributors.length > 0 ? (
             <div className="h-64 md:h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -310,12 +310,12 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                   />
                   <Tooltip 
                     contentStyle={customTooltipStyle}
-                    formatter={(value: any, name: string) => [formatCurrency(Number(value || 0), currency), name]}
+                    formatter={(value: any, name: string) => [formatCurrency(Number(value || 0), currency), name === 'Actual Amount' ? 'Est. Cost' : name === 'Difference' ? 'Profit/Comm.' : name]}
                   />
                   <Legend wrapperStyle={{ fontSize: '13px', color: theme === 'dark' ? '#cbd5e1' : '#475569', paddingTop: '20px' }} iconType="circle" />
-                  <ReferenceLine y={avgActual} stroke="#f59e0b" strokeDasharray="4 4" label={{ position: 'top', value: 'Avg Actual', fill: '#f59e0b', fontSize: 11, fontWeight: 500 }} />
-                  <Area type="monotone" dataKey="actual" name="Actual Amount" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorActual)" activeDot={{ r: 6, strokeWidth: 0 }} />
-                  <Area type="monotone" dataKey="difference" name="Difference" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorDiff)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                  <ReferenceLine y={avgActual} stroke="#f59e0b" strokeDasharray="4 4" label={{ position: 'top', value: 'Avg Est. Cost', fill: '#f59e0b', fontSize: 11, fontWeight: 500 }} />
+                  <Area type="monotone" dataKey="actual" name="Estimated Cost" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorActual)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                  <Area type="monotone" dataKey="difference" name="Profit/Commission" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorDiff)" activeDot={{ r: 6, strokeWidth: 0 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -353,16 +353,16 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                 setSortConfig({ key: key as SortKey, direction: direction as SortDirection });
               }}
             >
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="name-desc">Name (Z-A)</option>
-              <option value="actualAmount-desc">Actual (High to Low)</option>
-              <option value="actualAmount-asc">Actual (Low to High)</option>
-              <option value="discountAmount-desc">Discount (High to Low)</option>
-              <option value="discountAmount-asc">Discount (Low to High)</option>
-              <option value="difference-desc">Difference (High to Low)</option>
-              <option value="difference-asc">Difference (Low to High)</option>
-              <option value="percentage-desc">% Diff (High to Low)</option>
-              <option value="percentage-asc">% Diff (Low to High)</option>
+              <option value="name-asc">Supplier (A-Z)</option>
+              <option value="name-desc">Supplier (Z-A)</option>
+              <option value="actualAmount-desc">Est. Cost (High to Low)</option>
+              <option value="actualAmount-asc">Est. Cost (Low to High)</option>
+              <option value="discountAmount-desc">Actual Cost (High to Low)</option>
+              <option value="discountAmount-asc">Actual Cost (Low to High)</option>
+              <option value="difference-desc">Profit (High to Low)</option>
+              <option value="difference-asc">Profit (Low to High)</option>
+              <option value="percentage-desc">Profit % (High to Low)</option>
+              <option value="percentage-asc">Profit % (Low to High)</option>
             </select>
           </div>
 
@@ -372,19 +372,19 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <th className="p-3 font-semibold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-tl-xl" onClick={() => handleSort('name')}>
-                    <div className="flex items-center gap-1.5">Name <SortIcon columnKey="name" /></div>
+                    <div className="flex items-center gap-1.5">Supplier <SortIcon columnKey="name" /></div>
                   </th>
                   <th className="p-3 font-semibold text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('actualAmount')}>
-                    <div className="flex items-center justify-end gap-1.5">Actual Amount <SortIcon columnKey="actualAmount" /></div>
+                    <div className="flex items-center justify-end gap-1.5">Est. Cost <SortIcon columnKey="actualAmount" /></div>
                   </th>
                   <th className="p-3 font-semibold text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('discountAmount')}>
-                    <div className="flex items-center justify-end gap-1.5">Discount Amount <SortIcon columnKey="discountAmount" /></div>
+                    <div className="flex items-center justify-end gap-1.5">Actual Cost <SortIcon columnKey="discountAmount" /></div>
                   </th>
                   <th className="p-3 font-semibold text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('difference')}>
-                    <div className="flex items-center justify-end gap-1.5">Difference <SortIcon columnKey="difference" /></div>
+                    <div className="flex items-center justify-end gap-1.5">Profit/Comm. <SortIcon columnKey="difference" /></div>
                   </th>
                   <th className="p-3 font-semibold text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-tr-xl" onClick={() => handleSort('percentage')}>
-                    <div className="flex items-center justify-end gap-1.5">% Diff <SortIcon columnKey="percentage" /></div>
+                    <div className="flex items-center justify-end gap-1.5">Profit % <SortIcon columnKey="percentage" /></div>
                   </th>
                 </tr>
               </thead>
@@ -433,16 +433,16 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Actual</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Est. Cost</div>
                         <div className="text-slate-600 dark:text-slate-300 font-medium">{formatCurrency(d.actualAmount || 0, currency)}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Discount</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Actual Cost</div>
                         <div className="text-slate-600 dark:text-slate-300 font-medium">{formatCurrency(d.discountAmount || 0, currency)}</div>
                       </div>
                       <div className="col-span-2 pt-3 mt-1 border-t border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center">
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Difference</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profit/Comm.</div>
                           <div className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(diff, currency)}</div>
                         </div>
                       </div>
