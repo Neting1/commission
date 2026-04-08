@@ -106,10 +106,12 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
 
   const totalActual = groupedDistributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
   const totalDiscount = groupedDistributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
-  const totalDifference = totalActual - totalDiscount;
+  const totalDifference = groupedDistributors.reduce((sum, d) => sum + calculateDifference(d), 0);
   
-  const avgDiscountPct = totalActual ? (totalDiscount / totalActual) * 100 : 0;
-  const overallDiffPct = totalActual ? (totalDifference / totalActual) * 100 : 0;
+  // Only calculate overall percentage based on rows that have an actual cost entered
+  const actualForCompleted = groupedDistributors.reduce((sum, d) => sum + (d.discountAmount !== undefined ? (d.actualAmount || 0) : 0), 0);
+  const avgDiscountPct = actualForCompleted ? (totalDiscount / actualForCompleted) * 100 : 0;
+  const overallDiffPct = actualForCompleted ? (totalDifference / actualForCompleted) * 100 : 0;
   const avgActual = groupedDistributors.length ? totalActual / groupedDistributors.length : 0;
 
   const handleExport = async () => {
@@ -401,11 +403,15 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                     return (
                       <tr key={d.id} className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td className="p-3 font-medium text-slate-900 dark:text-white">{d.name || 'Unnamed'}</td>
-                        <td className="p-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(d.actualAmount || 0, currency)}</td>
-                        <td className="p-3 text-right text-slate-600 dark:text-slate-300">{formatCurrency(d.discountAmount || 0, currency)}</td>
-                        <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(diff, currency)}</td>
+                        <td className="p-3 text-right text-slate-600 dark:text-slate-300">{d.actualAmount !== undefined ? formatCurrency(d.actualAmount, currency) : '-'}</td>
+                        <td className="p-3 text-right text-slate-600 dark:text-slate-300">{d.discountAmount !== undefined ? formatCurrency(d.discountAmount, currency) : '-'}</td>
+                        <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{d.discountAmount !== undefined ? formatCurrency(diff, currency) : '-'}</td>
                         <td className="p-3 text-right font-semibold text-indigo-600 dark:text-indigo-400">
-                          <span className="bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg">{pct.toFixed(2)}%</span>
+                          {d.discountAmount !== undefined ? (
+                            <span className="bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg">{pct.toFixed(2)}%</span>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
                         </td>
                       </tr>
                     );
@@ -427,23 +433,27 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                   <div key={d.id} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                     <div className="flex justify-between items-start">
                       <div className="font-medium text-slate-900 dark:text-white">{d.name || 'Unnamed'}</div>
-                      <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-lg text-xs font-semibold">
-                        {pct.toFixed(2)}%
-                      </div>
+                      {d.discountAmount !== undefined ? (
+                        <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-lg text-xs font-semibold">
+                          {pct.toFixed(2)}%
+                        </div>
+                      ) : (
+                        <div className="text-slate-400 text-xs font-semibold">-</div>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Est. Cost</div>
-                        <div className="text-slate-600 dark:text-slate-300 font-medium">{formatCurrency(d.actualAmount || 0, currency)}</div>
+                        <div className="text-slate-600 dark:text-slate-300 font-medium">{d.actualAmount !== undefined ? formatCurrency(d.actualAmount, currency) : '-'}</div>
                       </div>
                       <div>
                         <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Actual Cost</div>
-                        <div className="text-slate-600 dark:text-slate-300 font-medium">{formatCurrency(d.discountAmount || 0, currency)}</div>
+                        <div className="text-slate-600 dark:text-slate-300 font-medium">{d.discountAmount !== undefined ? formatCurrency(d.discountAmount, currency) : '-'}</div>
                       </div>
                       <div className="col-span-2 pt-3 mt-1 border-t border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center">
                           <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profit/Comm.</div>
-                          <div className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(diff, currency)}</div>
+                          <div className="font-semibold text-emerald-600 dark:text-emerald-400">{d.discountAmount !== undefined ? formatCurrency(diff, currency) : '-'}</div>
                         </div>
                       </div>
                     </div>

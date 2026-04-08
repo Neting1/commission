@@ -4,8 +4,8 @@ export interface Distributor {
   id: string;
   displayId?: string;
   name: string;
-  actualAmount: number;
-  discountAmount: number;
+  actualAmount?: number;
+  discountAmount?: number;
   commissionRate?: number;
   date?: string; // ISO date string YYYY-MM-DD
 }
@@ -38,7 +38,8 @@ export function formatCurrency(value: number, currency: Currency): string {
 }
 
 export function calculateDifference(distributor: Distributor): number {
-  return (distributor.actualAmount || 0) - (distributor.discountAmount || 0);
+  if (distributor.discountAmount === undefined) return 0;
+  return (distributor.actualAmount || 0) - distributor.discountAmount;
 }
 
 export function calculateCommission(distributor: Distributor): number {

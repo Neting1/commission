@@ -57,8 +57,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
         id: uuidv4(),
         displayId: '',
         name: '',
-        actualAmount: 0,
-        discountAmount: 0,
+        actualAmount: undefined,
+        discountAmount: undefined,
         date: new Date().toISOString().split('T')[0],
       },
     ]);
@@ -72,7 +72,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
     handleSetDistributors(
       distributors.map((d) => {
         if (d.id === id) {
-          if ((field === 'actualAmount' || field === 'discountAmount') && value < 0) {
+          if ((field === 'actualAmount' || field === 'discountAmount') && value !== undefined && value < 0) {
             value = 0;
           }
           return { ...d, [field]: value };
@@ -160,8 +160,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 <input
                   type="number"
                   min="0"
-                  value={d.actualAmount || ''}
-                  onChange={(e) => updateDistributor(d.id, 'actualAmount', parseFloat(e.target.value) || 0)}
+                  value={d.actualAmount !== undefined ? d.actualAmount : ''}
+                  onChange={(e) => updateDistributor(d.id, 'actualAmount', e.target.value === '' ? undefined : parseFloat(e.target.value))}
                   placeholder="0.00"
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
@@ -171,8 +171,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 <input
                   type="number"
                   min="0"
-                  value={d.discountAmount || ''}
-                  onChange={(e) => updateDistributor(d.id, 'discountAmount', parseFloat(e.target.value) || 0)}
+                  value={d.discountAmount !== undefined ? d.discountAmount : ''}
+                  onChange={(e) => updateDistributor(d.id, 'discountAmount', e.target.value === '' ? undefined : parseFloat(e.target.value))}
                   placeholder="0.00"
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
@@ -180,7 +180,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
               <div className="sm:col-span-1 lg:w-40 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission">Profit/Comm.</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
-                  {formatCurrency(calculateDifference(d), currency)}
+                  {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d), currency) : '-'}
                 </div>
               </div>
               <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
@@ -190,11 +190,11 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                     type="number"
                     step="any"
                     disabled={!d.actualAmount}
-                    value={d.actualAmount ? Number(calculatePercentage(d).toFixed(2)) : ''}
+                    value={d.discountAmount !== undefined && d.actualAmount ? Number(calculatePercentage(d).toFixed(2)) : ''}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === '') {
-                        updateDistributor(d.id, 'discountAmount', d.actualAmount || 0);
+                        updateDistributor(d.id, 'discountAmount', undefined);
                         return;
                       }
                       const pct = parseFloat(val) || 0;
