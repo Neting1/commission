@@ -185,17 +185,6 @@ function MainApp() {
             <PieChart size={18} />
             Summary
           </button>
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'profile' 
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600' 
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-            }`}
-          >
-            <Shield size={18} />
-            Security
-          </button>
           {userProfile.role === 'admin' && (
             <button
               onClick={() => setActiveTab('users')}
@@ -229,10 +218,6 @@ function MainApp() {
 
           {userProfile.role === 'admin' && activeTab === 'users' && (
             <UserManagement />
-          )}
-
-          {activeTab === 'profile' && (
-            <ProfileSettings />
           )}
         </div>
       </main>
