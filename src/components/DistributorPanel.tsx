@@ -195,9 +195,9 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                 </div>
               </div>
               <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Actual Profit (6% Fixed)">Actual Profit</label>
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Actual Profit (After 6% deduction)">Actual Profit</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-sky-50/50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-xl text-xs sm:text-sm font-semibold text-sky-600 dark:text-sky-400 truncate">
-                  {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.06, currency) : '-'}
+                  {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.94, currency) : '-'}
                 </div>
               </div>
               <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
