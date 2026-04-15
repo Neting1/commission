@@ -156,7 +156,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
+              <div className="sm:col-span-1 lg:w-32 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider" title="Estimated/Supposed Cost">Est. Cost ({currency.symbol})</label>
                 <NumericFormat
                   value={d.actualAmount !== undefined ? d.actualAmount : ''}
@@ -172,7 +172,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="sm:col-span-1 lg:w-40 lg:shrink-0">
+              <div className="sm:col-span-1 lg:w-32 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual Cost ({currency.symbol})</label>
                 <NumericFormat
                   value={d.discountAmount !== undefined ? d.discountAmount : ''}
@@ -188,10 +188,16 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="sm:col-span-1 lg:w-40 lg:shrink-0 flex flex-col justify-end h-full">
+              <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission">Profit/Comm.</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
                   {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d), currency) : '-'}
+                </div>
+              </div>
+              <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
+                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Actual Profit (6% Fixed)">Actual Profit</label>
+                <div className="h-[38px] flex items-center px-2 sm:px-3 bg-sky-50/50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-xl text-xs sm:text-sm font-semibold text-sky-600 dark:text-sky-400 truncate">
+                  {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.06, currency) : '-'}
                 </div>
               </div>
               <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
