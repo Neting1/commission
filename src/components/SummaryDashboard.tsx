@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
+import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage, calculateCustomerShare, calculateActualProfit } from '../types';
 import { 
   ResponsiveContainer, Tooltip, Legend, CartesianGrid, 
   AreaChart, Area, ReferenceLine, XAxis, YAxis
@@ -107,6 +107,8 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
   const totalActual = groupedDistributors.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
   const totalDiscount = groupedDistributors.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
   const totalDifference = groupedDistributors.reduce((sum, d) => sum + calculateDifference(d), 0);
+  const totalCustomerShare = groupedDistributors.reduce((sum, d) => sum + calculateCustomerShare(d), 0);
+  const totalActualProfit = groupedDistributors.reduce((sum, d) => sum + calculateActualProfit(d), 0);
   
   // Only calculate overall percentage based on rows that have an actual cost entered
   const actualForCompleted = groupedDistributors.reduce((sum, d) => sum + (d.discountAmount !== undefined ? (d.actualAmount || 0) : 0), 0);
@@ -247,7 +249,7 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
       )}
 
       {/* Top Row: KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
         <StatCard 
           title="Total Estimated Cost" 
           value={formatCurrency(totalActual, currency)} 
@@ -257,7 +259,15 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
           colorClass="text-indigo-600 bg-indigo-600"
         />
         <StatCard 
-          title="Total Profit/Commission" 
+          title="Total Actual Cost" 
+          value={formatCurrency(totalDiscount, currency)} 
+          subtitle="Suppliers:"
+          subValue={distributors.length.toString()}
+          icon={Percent}
+          colorClass="text-rose-500 bg-rose-500"
+        />
+        <StatCard 
+          title="Total Profit/Comm." 
           value={formatCurrency(totalDifference, currency)} 
           subtitle="Avg Actual Cost:"
           subValue={`${avgDiscountPct.toFixed(2)}%`}
@@ -265,12 +275,18 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
           colorClass="text-emerald-500 bg-emerald-500"
         />
         <StatCard 
-          title="Total Actual Cost" 
-          value={formatCurrency(totalDiscount, currency)} 
-          subtitle="Suppliers:"
-          subValue={distributors.length.toString()}
-          icon={Percent}
-          colorClass="text-rose-500 bg-rose-500"
+          title="Total Customer Share" 
+          value={formatCurrency(totalCustomerShare, currency)} 
+          subtitle="60% Split"
+          icon={Activity}
+          colorClass="text-emerald-500 bg-emerald-500"
+        />
+        <StatCard 
+          title="Total Actual Profit" 
+          value={formatCurrency(totalActualProfit, currency)} 
+          subtitle="40% Split"
+          icon={Activity}
+          colorClass="text-sky-500 bg-sky-500"
         />
       </div>
 
@@ -385,6 +401,12 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                   <th className="p-3 font-semibold text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('difference')}>
                     <div className="flex items-center justify-end gap-1.5">Profit/Comm. <SortIcon columnKey="difference" /></div>
                   </th>
+                  <th className="p-3 font-semibold text-right text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center justify-end gap-1.5">Customer Share</div>
+                  </th>
+                  <th className="p-3 font-semibold text-right text-sky-600 dark:text-sky-400">
+                    <div className="flex items-center justify-end gap-1.5">Actual Profit</div>
+                  </th>
                   <th className="p-3 font-semibold text-right cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-tr-xl" onClick={() => handleSort('percentage')}>
                     <div className="flex items-center justify-end gap-1.5">Profit % <SortIcon columnKey="percentage" /></div>
                   </th>
@@ -398,6 +420,8 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                 ) : (
                   sortedDistributors.map(d => {
                     const diff = calculateDifference(d);
+                    const custShare = calculateCustomerShare(d);
+                    const actProfit = calculateActualProfit(d);
                     const pct = calculatePercentage(d);
                     
                     return (
@@ -405,7 +429,9 @@ export default function SummaryDashboard({ distributors, currency }: Props) {
                         <td className="p-3 font-medium text-slate-900 dark:text-white">{d.name || 'Unnamed'}</td>
                         <td className="p-3 text-right text-slate-600 dark:text-slate-300">{d.actualAmount !== undefined ? formatCurrency(d.actualAmount, currency) : '-'}</td>
                         <td className="p-3 text-right text-slate-600 dark:text-slate-300">{d.discountAmount !== undefined ? formatCurrency(d.discountAmount, currency) : '-'}</td>
-                        <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{d.discountAmount !== undefined ? formatCurrency(diff, currency) : '-'}</td>
+                        <td className="p-3 text-right font-semibold text-slate-700 dark:text-slate-300">{d.discountAmount !== undefined ? formatCurrency(diff, currency) : '-'}</td>
+                        <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{d.discountAmount !== undefined ? formatCurrency(custShare, currency) : '-'}</td>
+                        <td className="p-3 text-right font-semibold text-sky-600 dark:text-sky-400">{d.discountAmount !== undefined ? formatCurrency(actProfit, currency) : '-'}</td>
                         <td className="p-3 text-right font-semibold text-indigo-600 dark:text-indigo-400">
                           {d.discountAmount !== undefined ? (
                             <span className="bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg">{pct.toFixed(2)}%</span>

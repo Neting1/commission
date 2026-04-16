@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle, Undo2, Redo2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { NumericFormat } from 'react-number-format';
-import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage } from '../types';
+import { Distributor, Currency, formatCurrency, calculateDifference, calculatePercentage, calculateCustomerShare, calculateActualProfit } from '../types';
 
 interface Props {
   distributors: Distributor[];
@@ -197,13 +197,13 @@ export default function DistributorPanel({ distributors, setDistributors, curren
               <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Customer Share (60%)">Customer Share</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate">
-                  {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.60, currency) : '-'}
+                  {d.discountAmount !== undefined ? formatCurrency(calculateCustomerShare(d), currency) : '-'}
                 </div>
               </div>
               <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Actual Profit (40% Company Share)">Actual Profit</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-sky-50/50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-xl text-xs sm:text-sm font-semibold text-sky-600 dark:text-sky-400 truncate">
-                  {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.40, currency) : '-'}
+                  {d.discountAmount !== undefined ? formatCurrency(calculateActualProfit(d), currency) : '-'}
                 </div>
               </div>
               <div className="col-span-1 sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
