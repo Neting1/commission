@@ -20,6 +20,8 @@ export async function exportToExcel(
     { header: `Total Actual (${currency.code})`, key: 'actual', width: 25 },
     { header: `Total Discount (${currency.code})`, key: 'discount', width: 25 },
     { header: `Total Difference (${currency.code})`, key: 'difference', width: 25 },
+    { header: `Customer Share (60%) (${currency.code})`, key: 'customerShare', width: 25 },
+    { header: `Actual Profit (40%) (${currency.code})`, key: 'actualProfit', width: 25 },
     { header: 'Overall % Diff', key: 'percentage', width: 20 },
   ];
 
@@ -29,6 +31,12 @@ export async function exportToExcel(
     const diffFormula = `B${rowNum}-C${rowNum}`;
     const diffResult = calculateDifference(d);
     
+    const custShareFormula = `D${rowNum}*0.60`;
+    const custShareResult = diffResult * 0.60;
+
+    const actualProfitFormula = `D${rowNum}*0.40`;
+    const actualProfitResult = diffResult * 0.40;
+
     const pctFormula = `IF(B${rowNum}=0, 0, (D${rowNum}/B${rowNum})*100)`;
     const pctResult = calculatePercentage(d);
     
@@ -39,12 +47,16 @@ export async function exportToExcel(
     });
     
     summarySheet.getCell(`D${rowNum}`).value = { formula: diffFormula, result: diffResult };
-    summarySheet.getCell(`E${rowNum}`).value = { formula: pctFormula, result: pctResult };
+    summarySheet.getCell(`E${rowNum}`).value = { formula: custShareFormula, result: custShareResult };
+    summarySheet.getCell(`F${rowNum}`).value = { formula: actualProfitFormula, result: actualProfitResult };
+    summarySheet.getCell(`G${rowNum}`).value = { formula: pctFormula, result: pctResult };
     
     summarySheet.getCell(`B${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
     summarySheet.getCell(`C${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
     summarySheet.getCell(`D${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
-    summarySheet.getCell(`E${rowNum}`).numFmt = '0.00"%"';
+    summarySheet.getCell(`E${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
+    summarySheet.getCell(`F${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
+    summarySheet.getCell(`G${rowNum}`).numFmt = '0.00"%"';
   });
 
   // Add Grand Totals for Summary
@@ -56,16 +68,20 @@ export async function exportToExcel(
   const totalActual = summary.reduce((sum, d) => sum + (d.actualAmount || 0), 0);
   const totalDiscount = summary.reduce((sum, d) => sum + (d.discountAmount || 0), 0);
   const totalDifference = totalActual - totalDiscount;
+  const totalCustShare = totalDifference * 0.60;
+  const totalActualProfit = totalDifference * 0.40;
   const totalPct = totalActual === 0 ? 0 : (totalDifference / totalActual) * 100;
   
   summarySheet.getCell(`B${lastRow}`).value = { formula: `SUM(B2:B${lastRow-1})`, result: totalActual };
   summarySheet.getCell(`C${lastRow}`).value = { formula: `SUM(C2:C${lastRow-1})`, result: totalDiscount };
   summarySheet.getCell(`D${lastRow}`).value = { formula: `SUM(D2:D${lastRow-1})`, result: totalDifference };
-  summarySheet.getCell(`E${lastRow}`).value = { formula: `IF(B${lastRow}=0, 0, (D${lastRow}/B${lastRow})*100)`, result: totalPct };
+  summarySheet.getCell(`E${lastRow}`).value = { formula: `SUM(E2:E${lastRow-1})`, result: totalCustShare };
+  summarySheet.getCell(`F${lastRow}`).value = { formula: `SUM(F2:F${lastRow-1})`, result: totalActualProfit };
+  summarySheet.getCell(`G${lastRow}`).value = { formula: `IF(B${lastRow}=0, 0, (D${lastRow}/B${lastRow})*100)`, result: totalPct };
   
-  ['B', 'C', 'D', 'E'].forEach(col => {
+  ['B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
     summarySheet.getCell(`${col}${lastRow}`).font = { bold: true };
-    summarySheet.getCell(`${col}${lastRow}`).numFmt = col === 'E' ? '0.00"%"' : '"' + currency.symbol + '"#,##0.00';
+    summarySheet.getCell(`${col}${lastRow}`).numFmt = col === 'G' ? '0.00"%"' : '"' + currency.symbol + '"#,##0.00';
   });
 
   // --- Sheet 2: Transactions ---
@@ -76,6 +92,8 @@ export async function exportToExcel(
     { header: `Actual Amount (${currency.code})`, key: 'actual', width: 25 },
     { header: `Discount Amount (${currency.code})`, key: 'discount', width: 25 },
     { header: `Difference (${currency.code})`, key: 'difference', width: 25 },
+    { header: `Customer Share (60%) (${currency.code})`, key: 'customerShare', width: 25 },
+    { header: `Actual Profit (40%) (${currency.code})`, key: 'actualProfit', width: 25 },
     { header: '% Difference', key: 'percentage', width: 20 },
   ];
 
@@ -85,6 +103,12 @@ export async function exportToExcel(
     const diffFormula = `C${rowNum}-D${rowNum}`;
     const diffResult = calculateDifference(d);
     
+    const custShareFormula = `E${rowNum}*0.60`;
+    const custShareResult = diffResult * 0.60;
+
+    const actualProfitFormula = `E${rowNum}*0.40`;
+    const actualProfitResult = diffResult * 0.40;
+
     const pctFormula = `IF(C${rowNum}=0, 0, (E${rowNum}/C${rowNum})*100)`;
     const pctResult = calculatePercentage(d);
     
@@ -96,12 +120,16 @@ export async function exportToExcel(
     });
     
     transSheet.getCell(`E${rowNum}`).value = { formula: diffFormula, result: diffResult };
-    transSheet.getCell(`F${rowNum}`).value = { formula: pctFormula, result: pctResult };
+    transSheet.getCell(`F${rowNum}`).value = { formula: custShareFormula, result: custShareResult };
+    transSheet.getCell(`G${rowNum}`).value = { formula: actualProfitFormula, result: actualProfitResult };
+    transSheet.getCell(`H${rowNum}`).value = { formula: pctFormula, result: pctResult };
     
     transSheet.getCell(`C${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
     transSheet.getCell(`D${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
     transSheet.getCell(`E${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
-    transSheet.getCell(`F${rowNum}`).numFmt = '0.00"%"';
+    transSheet.getCell(`F${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
+    transSheet.getCell(`G${rowNum}`).numFmt = '"' + currency.symbol + '"#,##0.00';
+    transSheet.getCell(`H${rowNum}`).numFmt = '0.00"%"';
   });
 
   // Generate and save file
