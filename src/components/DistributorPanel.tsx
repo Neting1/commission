@@ -134,8 +134,8 @@ export default function DistributorPanel({ distributors, setDistributors, curren
             ))}
           </datalist>
           {distributors.map((d) => (
-            <div key={d.id} className="group relative grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row gap-3 md:gap-4 items-end bg-white dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all">
-              <div className="sm:col-span-1 lg:w-36 lg:shrink-0">
+            <div key={d.id} className="group relative grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row gap-3 md:gap-4 items-end bg-white dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all">
+              <div className="col-span-2 sm:col-span-1 lg:w-36 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Date on Invoice</label>
                 <input
                   type="date"
@@ -145,7 +145,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white"
                 />
               </div>
-              <div className="sm:col-span-1 lg:flex-1 lg:min-w-[150px]">
+              <div className="col-span-2 sm:col-span-2 md:col-span-1 lg:flex-1 lg:min-w-[150px]">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Supplier</label>
                 <input
                   type="text"
@@ -156,7 +156,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="sm:col-span-1 lg:w-32 lg:shrink-0">
+              <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider" title="Estimated/Supposed Cost">Est. Cost ({currency.symbol})</label>
                 <NumericFormat
                   value={d.actualAmount !== undefined ? d.actualAmount : ''}
@@ -172,7 +172,7 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="sm:col-span-1 lg:w-32 lg:shrink-0">
+              <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Actual Cost ({currency.symbol})</label>
                 <NumericFormat
                   value={d.discountAmount !== undefined ? d.discountAmount : ''}
@@ -188,25 +188,25 @@ export default function DistributorPanel({ distributors, setDistributors, curren
                   className="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-900 dark:text-white placeholder-slate-400"
                 />
               </div>
-              <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
+              <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission">Profit/Comm.</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
                   {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d), currency) : '-'}
                 </div>
               </div>
-              <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
+              <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Customer Share (60%)">Customer Share</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate">
                   {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.60, currency) : '-'}
                 </div>
               </div>
-              <div className="sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
+              <div className="col-span-1 sm:col-span-1 lg:w-32 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Actual Profit (40% Company Share)">Actual Profit</label>
                 <div className="h-[38px] flex items-center px-2 sm:px-3 bg-sky-50/50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-xl text-xs sm:text-sm font-semibold text-sky-600 dark:text-sky-400 truncate">
                   {d.discountAmount !== undefined ? formatCurrency(calculateDifference(d) * 0.40, currency) : '-'}
                 </div>
               </div>
-              <div className="sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
+              <div className="col-span-1 sm:col-span-1 lg:w-24 lg:shrink-0 flex flex-col justify-end h-full">
                 <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider truncate" title="Profit/Commission Percentage">Profit %</label>
                 <div className="relative h-[38px]">
                   <NumericFormat
