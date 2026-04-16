@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { Distributor, Currency, calculateDifference, calculatePercentage, calculateCustomerShare, calculateActualProfit } from './types';
+import { Distributor, Currency, calculateDifference, calculatePercentage } from './types';
 
 export async function exportToExcel(
   transactions: Distributor[], 
@@ -32,10 +32,10 @@ export async function exportToExcel(
     const diffResult = calculateDifference(d);
     
     const custShareFormula = `D${rowNum}*0.60`;
-    const custShareResult = calculateCustomerShare(d);
+    const custShareResult = diffResult * 0.60;
 
     const actualProfitFormula = `D${rowNum}*0.40`;
-    const actualProfitResult = calculateActualProfit(d);
+    const actualProfitResult = diffResult * 0.40;
 
     const pctFormula = `IF(B${rowNum}=0, 0, (D${rowNum}/B${rowNum})*100)`;
     const pctResult = calculatePercentage(d);
@@ -104,10 +104,10 @@ export async function exportToExcel(
     const diffResult = calculateDifference(d);
     
     const custShareFormula = `E${rowNum}*0.60`;
-    const custShareResult = calculateCustomerShare(d);
+    const custShareResult = diffResult * 0.60;
 
     const actualProfitFormula = `E${rowNum}*0.40`;
-    const actualProfitResult = calculateActualProfit(d);
+    const actualProfitResult = diffResult * 0.40;
 
     const pctFormula = `IF(C${rowNum}=0, 0, (E${rowNum}/C${rowNum})*100)`;
     const pctResult = calculatePercentage(d);

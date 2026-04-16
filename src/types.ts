@@ -42,14 +42,6 @@ export function calculateDifference(distributor: Distributor): number {
   return (distributor.actualAmount || 0) - distributor.discountAmount;
 }
 
-export function calculateCustomerShare(distributor: Distributor): number {
-  return calculateDifference(distributor) * 0.60;
-}
-
-export function calculateActualProfit(distributor: Distributor): number {
-  return calculateDifference(distributor) * 0.40;
-}
-
 export function calculateCommission(distributor: Distributor): number {
   const actual = distributor.actualAmount || 0;
   const rate = (distributor.commissionRate || 0) / 100;
