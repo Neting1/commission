@@ -89,12 +89,12 @@ service cloud.firestore {
     }
 
     match /global/data {
-      allow read: if isAuthenticated();
+      allow read: if isAdmin() || isManager();
       allow write: if (isAdmin() || isManager()) && isValidGlobalData(request.resource.data);
     }
 
     match /mail/{docId} {
-      allow create: if isAuthenticated();
+      allow create: if isAdmin() || isManager();
     }
   }
 }
